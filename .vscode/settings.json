@@ -1,0 +1,10 @@
+{
+  "editor.formatOnSave": true,
+  "prettier.endOfLine": "crlf",
+
+  // Organize and fix imports on save
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit"
+  }
+}
