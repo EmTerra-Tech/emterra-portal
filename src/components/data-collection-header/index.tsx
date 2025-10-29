@@ -1,26 +1,13 @@
-/** @jsxImportSource @emotion/react */
-import { css } from "@emotion/react";
-
-const headerContainer = css`
-  /* your styles here */
-`;
-
-const headerTitle = css`
-  /* your styles here */
-`;
-
-const headerSubtitle = css`
-  /* your styles here */
-`;
+import { HeaderContainer, HeaderSubtitle, HeaderTitle } from "./styles";
 
 const DataCollectionHeader = () => {
   return (
-    <div css={headerContainer}>
-      <div css={headerTitle}>
+    <div className={HeaderContainer}>
+      <div className={HeaderTitle}>
         <span>🔥</span>
         Scope-Based Data Collection
       </div>
-      <div css={headerSubtitle}>
+      <div className={HeaderSubtitle}>
         Track and manage your greenhouse gas emissions across all three scopes
       </div>
     </div>
