@@ -1,16 +1,17 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import SpendEntry from "../spend-entry"
-import { DataSection, AddEntrySection, AddEntryBtn } from "./styles"
+import { Button } from "antd";
+import { useState } from "react";
+import SpendEntry from "../spend-entry";
+import { AddEntryBtn, AddEntrySection, DataSection } from "./styles";
 
 interface SpendEntryData {
-  id: number
-  supplier: string
-  amount: string
-  currency: string
-  category: string
-  description: string
+  id: number;
+  supplier: string;
+  amount: string;
+  currency: string;
+  category: string;
+  description: string;
 }
 
 const SpendDataSection = () => {
@@ -23,10 +24,10 @@ const SpendDataSection = () => {
       category: "",
       description: "",
     },
-  ])
+  ]);
 
   const addEntry = () => {
-    const newId = Math.max(...entries.map((e) => e.id)) + 1
+    const newId = Math.max(...entries.map((e) => e.id)) + 1;
     setEntries([
       ...entries,
       {
@@ -37,23 +38,31 @@ const SpendDataSection = () => {
         category: "",
         description: "",
       },
-    ])
-  }
+    ]);
+  };
 
   const removeEntry = (id: number) => {
     if (entries.length > 1) {
-      setEntries(entries.filter((entry) => entry.id !== id))
+      setEntries(entries.filter((entry) => entry.id !== id));
     } else {
-      alert("At least one entry is required.")
+      alert("At least one entry is required.");
     }
-  }
+  };
 
-  const updateEntry = (id: number, field: keyof SpendEntryData, value: string) => {
-    setEntries(entries.map((entry) => (entry.id === id ? { ...entry, [field]: value } : entry)))
-  }
+  const updateEntry = (
+    id: number,
+    field: keyof SpendEntryData,
+    value: string,
+  ) => {
+    setEntries(
+      entries.map((entry) =>
+        entry.id === id ? { ...entry, [field]: value } : entry,
+      ),
+    );
+  };
 
   return (
-    <DataSection>
+    <div className={DataSection}>
       {entries.map((entry, index) => (
         <SpendEntry
           key={entry.id}
@@ -64,13 +73,14 @@ const SpendDataSection = () => {
         />
       ))}
 
-      <AddEntrySection>
-        <AddEntryBtn onClick={addEntry}>
+      <div className={AddEntrySection}>
+        <Button className={AddEntryBtn} onClick={addEntry}>
           <span>+</span> Add Another Entry
-        </AddEntryBtn>
-      </AddEntrySection>
-    </DataSection>
-  )
-}
+        </Button>
+      </div>
+    </div>
+  );
+};
 
-export default SpendDataSection
+export default SpendDataSection;
+

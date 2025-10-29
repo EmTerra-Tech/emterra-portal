@@ -1,6 +1,6 @@
 "use client";
 
-import { Form, Select } from "antd";
+import { Form, Select, Input } from "antd";
 import {
   EntryContainer,
   EntryHeader,
@@ -82,15 +82,14 @@ const ActivityEntry = ({
       </div>
 
       <div className={FormRow}>
-        <div className={FormGroup}>
+        <Form.Item className={FormGroup}>
           <label className={FormLabel}>
             Unit <span className={Required}>*</span>
           </label>
-          <select
+          <Select
             className={FormSelect}
             value={entry.unit}
-            onChange={(e) => onUpdate("unit", e.target.value)}
-            required
+            onChange={(e) => onUpdate("unit", e)}
           >
             <option value="">Select unit</option>
             <option value="m³ (cubic meters)">m³ (cubic meters)</option>
@@ -99,14 +98,14 @@ const ActivityEntry = ({
             <option value="Gallons">Gallons</option>
             <option value="kg (kilograms)">kg (kilograms)</option>
             <option value="tonnes">tonnes</option>
-          </select>
-        </div>
-        <div className={FormGroup}>
+          </Select>
+        </Form.Item>
+        <Form.Item className={FormGroup}>
           <label>Equipment Type</label>
-          <select
+          <Select
             className={FormSelect}
             value={entry.equipment}
-            onChange={(e) => onUpdate("equipment", e.target.value)}
+            onChange={(e) => onUpdate("equipment", e)}
           >
             <option value="">Select equipment</option>
             <option value="Boiler">Boiler</option>
@@ -115,20 +114,20 @@ const ActivityEntry = ({
             <option value="Heat Pump">Heat Pump</option>
             <option value="Water Heater">Water Heater</option>
             <option value="Other">Other</option>
-          </select>
-        </div>
+          </Select>
+        </Form.Item>
       </div>
 
-      <div className={FormGroup}>
+      <Form.Item className={FormGroup}>
         <label className={FormLabel}>Notes (Optional)</label>
-        <textarea
+        <Input.TextArea
           className={FormTextarea}
           rows={3}
           placeholder="Additional information about this fuel consumption..."
           value={entry.notes}
           onChange={(e) => onUpdate("notes", e.target.value)}
         />
-      </div>
+      </Form.Item>
     </Form>
   );
 };

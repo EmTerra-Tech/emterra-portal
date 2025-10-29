@@ -1,37 +1,58 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, Form, Input, Select, Button, Switch, Row, Col, Typography, Space, Alert, Tag, message } from "antd"
-import { Container, HeaderCard, FormCard, StatusCard, StatusItem, FacilityCard } from "./styles"
+import {
+  Alert,
+  Button,
+  Card,
+  Col,
+  Form,
+  Input,
+  Row,
+  Select,
+  Space,
+  Switch,
+  Tag,
+  Typography,
+  message,
+} from "antd";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+  Container,
+  FacilityCard,
+  FormCard,
+  HeaderCard,
+  StatusCard,
+  StatusItem,
+} from "./styles";
 
-const { Title, Text } = Typography
-const { TextArea } = Input
-const { Option } = Select
+const { Title, Text } = Typography;
+const { TextArea } = Input;
+const { Option } = Select;
 
 const AddFacilityForm = () => {
-  const router = useRouter()
-  const [form] = Form.useForm()
+  const router = useRouter();
+  const [form] = Form.useForm();
   const [yearStatus, setYearStatus] = useState({
     2024: true,
     2023: true,
     2022: false,
-  })
+  });
 
   const handleToggleYear = (year: number, checked: boolean) => {
-    setYearStatus((prev) => ({ ...prev, [year]: checked }))
-  }
+    setYearStatus((prev) => ({ ...prev, [year]: checked }));
+  };
 
   const handleSubmit = (values: any) => {
-    console.log("Form values:", values)
-    console.log("Year status:", yearStatus)
-    message.success("Facility information saved successfully!")
-    router.push("/company-profile")
-  }
+    console.log("Form values:", values);
+    console.log("Year status:", yearStatus);
+    message.success("Facility information saved successfully!");
+    router.push("/company-profile");
+  };
 
   const handleCancel = () => {
-    router.push("/company-profile")
-  }
+    router.push("/company-profile");
+  };
 
   const facilityTypes = [
     { value: "headquarters", label: "Headquarters" },
@@ -42,7 +63,7 @@ const AddFacilityForm = () => {
     { value: "retail", label: "Retail Location" },
     { value: "datacenter", label: "Data Center" },
     { value: "other", label: "Other" },
-  ]
+  ];
 
   const existingFacilities = [
     {
@@ -57,11 +78,11 @@ const AddFacilityForm = () => {
       size: "78,000 sq ft",
       fte: "1,200 FTE",
     },
-  ]
+  ];
 
   return (
-    <Container>
-      <HeaderCard>
+    <div className={Container}>
+      <Card className={HeaderCard}>
         <Row justify="space-between" align="middle">
           <Col>
             <Title level={2} style={{ margin: 0, marginBottom: 8 }}>
@@ -70,16 +91,23 @@ const AddFacilityForm = () => {
                 <span>Add New Facility</span>
               </Space>
             </Title>
-            <Text type="secondary">Enter facility information and operational details</Text>
+            <Text type="secondary">
+              Enter facility information and operational details
+            </Text>
           </Col>
           <Col>
             <Button onClick={handleCancel}>Cancel</Button>
           </Col>
         </Row>
-      </HeaderCard>
+      </Card>
 
-      <FormCard>
-        <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark="optional">
+      <Card className={FormCard}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          requiredMark="optional"
+        >
           {/* Basic Information Section */}
           <div style={{ marginBottom: 32 }}>
             <Title level={4} style={{ marginBottom: 20 }}>
@@ -92,12 +120,18 @@ const AddFacilityForm = () => {
             <Form.Item
               label="Name of Facility"
               name="name"
-              rules={[{ required: true, message: "Please enter facility name" }]}
+              rules={[
+                { required: true, message: "Please enter facility name" },
+              ]}
             >
               <Input placeholder="e.g., Austin Manufacturing Plant" />
             </Form.Item>
 
-            <Form.Item label="Address" name="address" rules={[{ required: true, message: "Please enter address" }]}>
+            <Form.Item
+              label="Address"
+              name="address"
+              rules={[{ required: true, message: "Please enter address" }]}
+            >
               <Input placeholder="Enter full street address" />
             </Form.Item>
 
@@ -117,9 +151,18 @@ const AddFacilityForm = () => {
                     <Form.Item
                       name="officeSpace"
                       noStyle
-                      rules={[{ required: true, message: "Please enter office space" }]}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please enter office space",
+                        },
+                      ]}
                     >
-                      <Input placeholder="e.g., 45000" style={{ width: "70%" }} type="number" />
+                      <Input
+                        placeholder="e.g., 45000"
+                        style={{ width: "70%" }}
+                        type="number"
+                      />
                     </Form.Item>
                     <Form.Item name="spaceUnit" noStyle initialValue="sqft">
                       <Select style={{ width: "30%" }}>
@@ -137,7 +180,9 @@ const AddFacilityForm = () => {
                 <Form.Item
                   label="Type of Facility"
                   name="facilityType"
-                  rules={[{ required: true, message: "Please select facility type" }]}
+                  rules={[
+                    { required: true, message: "Please select facility type" },
+                  ]}
                 >
                   <Select placeholder="Select facility type">
                     {facilityTypes.map((type) => (
@@ -152,7 +197,9 @@ const AddFacilityForm = () => {
                 <Form.Item
                   label="FTE Count"
                   name="fteCount"
-                  rules={[{ required: true, message: "Please enter FTE count" }]}
+                  rules={[
+                    { required: true, message: "Please enter FTE count" },
+                  ]}
                   help="Full-time equivalent employees"
                 >
                   <Input placeholder="e.g., 850" type="number" />
@@ -170,7 +217,7 @@ const AddFacilityForm = () => {
               </Space>
             </Title>
 
-            <StatusCard>
+            <Card className={StatusCard}>
               <div style={{ marginBottom: 16 }}>
                 <Text strong>Reporting Year Status</Text>
                 <br />
@@ -179,7 +226,7 @@ const AddFacilityForm = () => {
                 </Text>
               </div>
 
-              <StatusItem>
+              <div className={StatusItem}>
                 <div>
                   <Text strong>2024 Status</Text>
                   <br />
@@ -189,12 +236,22 @@ const AddFacilityForm = () => {
                 </div>
                 <Space align="center">
                   <Text type="secondary">Inactive</Text>
-                  <Switch checked={yearStatus[2024]} onChange={(checked) => handleToggleYear(2024, checked)} />
-                  <Text style={{ color: yearStatus[2024] ? "#52c41a" : "#8c8c8c", fontWeight: 600 }}>Active</Text>
+                  <Switch
+                    checked={yearStatus[2024]}
+                    onChange={(checked) => handleToggleYear(2024, checked)}
+                  />
+                  <Text
+                    style={{
+                      color: yearStatus[2024] ? "#52c41a" : "#8c8c8c",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Active
+                  </Text>
                 </Space>
-              </StatusItem>
+              </div>
 
-              <StatusItem>
+              <div className={StatusItem}>
                 <div>
                   <Text strong>2023 Status</Text>
                   <br />
@@ -204,12 +261,22 @@ const AddFacilityForm = () => {
                 </div>
                 <Space align="center">
                   <Text type="secondary">Inactive</Text>
-                  <Switch checked={yearStatus[2023]} onChange={(checked) => handleToggleYear(2023, checked)} />
-                  <Text style={{ color: yearStatus[2023] ? "#52c41a" : "#8c8c8c", fontWeight: 600 }}>Active</Text>
+                  <Switch
+                    checked={yearStatus[2023]}
+                    onChange={(checked) => handleToggleYear(2023, checked)}
+                  />
+                  <Text
+                    style={{
+                      color: yearStatus[2023] ? "#52c41a" : "#8c8c8c",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Active
+                  </Text>
                 </Space>
-              </StatusItem>
+              </div>
 
-              <StatusItem>
+              <div className={StatusItem}>
                 <div>
                   <Text strong>2022 Status</Text>
                   <br />
@@ -218,11 +285,21 @@ const AddFacilityForm = () => {
                   </Text>
                 </div>
                 <Space align="center">
-                  <Text style={{ color: yearStatus[2022] ? "#8c8c8c" : "#ff4d4f", fontWeight: 600 }}>Inactive</Text>
-                  <Switch checked={yearStatus[2022]} onChange={(checked) => handleToggleYear(2022, checked)} />
+                  <Text
+                    style={{
+                      color: yearStatus[2022] ? "#8c8c8c" : "#ff4d4f",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Inactive
+                  </Text>
+                  <Switch
+                    checked={yearStatus[2022]}
+                    onChange={(checked) => handleToggleYear(2022, checked)}
+                  />
                   <Text type="secondary">Active</Text>
                 </Space>
-              </StatusItem>
+              </div>
 
               <Alert
                 message="Status Impact"
@@ -231,7 +308,7 @@ const AddFacilityForm = () => {
                 showIcon
                 style={{ marginTop: 16 }}
               />
-            </StatusCard>
+            </Card>
           </div>
 
           {/* Additional Information Section */}
@@ -244,7 +321,10 @@ const AddFacilityForm = () => {
             </Title>
 
             <Form.Item label="Description (Optional)" name="description">
-              <TextArea rows={3} placeholder="Brief description of facility operations, special considerations, etc." />
+              <TextArea
+                rows={3}
+                placeholder="Brief description of facility operations, special considerations, etc."
+              />
             </Form.Item>
 
             <Row gutter={16}>
@@ -257,7 +337,9 @@ const AddFacilityForm = () => {
                 <Form.Item
                   label="Contact Email"
                   name="contactEmail"
-                  rules={[{ type: "email", message: "Please enter a valid email" }]}
+                  rules={[
+                    { type: "email", message: "Please enter a valid email" },
+                  ]}
                 >
                   <Input placeholder="facility.manager@company.com" />
                 </Form.Item>
@@ -266,13 +348,19 @@ const AddFacilityForm = () => {
           </div>
 
           {/* Form Actions */}
-          <div style={{ textAlign: "center", paddingTop: 24, borderTop: "1px solid #e5e7eb" }}>
+          <div
+            style={{
+              textAlign: "center",
+              paddingTop: 24,
+              borderTop: "1px solid #e5e7eb",
+            }}
+          >
             <Button type="primary" htmlType="submit" size="large">
               💾 Save Facility
             </Button>
           </div>
         </Form>
-      </FormCard>
+      </Card>
 
       {/* Existing Facilities Preview */}
       <Card
@@ -286,8 +374,12 @@ const AddFacilityForm = () => {
         <Row gutter={[16, 16]}>
           {existingFacilities.map((facility, index) => (
             <Col xs={24} sm={12} lg={8} key={index}>
-              <FacilityCard size="small">
-                <Row justify="space-between" align="top" style={{ marginBottom: 8 }}>
+              <Card className={FacilityCard} size="small">
+                <Row
+                  justify="space-between"
+                  align="top"
+                  style={{ marginBottom: 8 }}
+                >
                   <Col>
                     <Text strong>{facility.name}</Text>
                   </Col>
@@ -295,19 +387,23 @@ const AddFacilityForm = () => {
                     <Tag color="green">ACTIVE</Tag>
                   </Col>
                 </Row>
-                <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
+                <Text
+                  type="secondary"
+                  style={{ fontSize: 12, display: "block", marginBottom: 4 }}
+                >
                   📍 {facility.location}
                 </Text>
                 <Text type="secondary" style={{ fontSize: 12 }}>
                   {facility.size} • {facility.fte}
                 </Text>
-              </FacilityCard>
+              </Card>
             </Col>
           ))}
         </Row>
       </Card>
-    </Container>
-  )
-}
+    </div>
+  );
+};
 
-export default AddFacilityForm
+export default AddFacilityForm;
+

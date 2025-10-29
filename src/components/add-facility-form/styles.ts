@@ -1,5 +1,4 @@
-/** @jsxImportSource @emotion/react */
-import { css } from "@emotion/react"
+import { css } from "@emotion/css"
 
 export const Container = css`
   max-width: 1600px;

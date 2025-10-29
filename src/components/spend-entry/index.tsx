@@ -1,60 +1,68 @@
-"use client"
+"use client";
 
+import { Button, Form, Input, Select } from "antd";
 import {
   EntryContainer,
   EntryHeader,
   EntryTitle,
-  RemoveBtn,
-  FormRow,
   FormGroup,
-  FormLabel,
-  Required,
   FormInput,
+  FormLabel,
+  FormRow,
   FormSelect,
   FormTextarea,
-} from "./styles"
+  RemoveBtn,
+  Required,
+} from "./styles";
 
 interface SpendEntryData {
-  id: number
-  supplier: string
-  amount: string
-  currency: string
-  category: string
-  description: string
+  id: number;
+  supplier: string;
+  amount: string;
+  currency: string;
+  category: string;
+  description: string;
 }
 
 interface SpendEntryProps {
-  entry: SpendEntryData
-  entryNumber: number
-  onRemove: () => void
-  onUpdate: (field: keyof SpendEntryData, value: string) => void
+  entry: SpendEntryData;
+  entryNumber: number;
+  onRemove: () => void;
+  onUpdate: (field: keyof SpendEntryData, value: string) => void;
 }
 
-const SpendEntry = ({ entry, entryNumber, onRemove, onUpdate }: SpendEntryProps) => {
+const SpendEntry = ({
+  entry,
+  entryNumber,
+  onRemove,
+  onUpdate,
+}: SpendEntryProps) => {
   return (
-    <EntryContainer>
-      <EntryHeader>
-        <EntryTitle>Entry {entryNumber}</EntryTitle>
-        <RemoveBtn onClick={onRemove} title="Remove Entry">
+    <Form className={EntryContainer}>
+      <div className={EntryHeader}>
+        <h2 className={EntryTitle}>Entry {entryNumber}</h2>
+        <Button className={RemoveBtn} onClick={onRemove} title="Remove Entry">
           ✕
-        </RemoveBtn>
-      </EntryHeader>
+        </Button>
+      </div>
 
-      <FormRow>
-        <FormGroup>
-          <FormLabel>Supplier/Vendor</FormLabel>
-          <FormInput
+      <div className={FormRow}>
+        <Form.Item className={FormGroup}>
+          <label className={FormLabel}>Supplier/Vendor</label>
+          <Input
+            className={FormInput}
             type="text"
             placeholder="Energy supplier name"
             value={entry.supplier}
             onChange={(e) => onUpdate("supplier", e.target.value)}
           />
-        </FormGroup>
-        <FormGroup>
-          <FormLabel>
-            Total Spend Amount <Required>*</Required>
-          </FormLabel>
-          <FormInput
+        </Form.Item>
+        <Form.Item className={FormGroup}>
+          <label className={FormLabel}>
+            Total Spend Amount <span className={Required}>*</span>
+          </label>
+          <Input
+            className={FormInput}
             type="number"
             placeholder="0.00"
             step="0.01"
@@ -62,46 +70,55 @@ const SpendEntry = ({ entry, entryNumber, onRemove, onUpdate }: SpendEntryProps)
             onChange={(e) => onUpdate("amount", e.target.value)}
             required
           />
-        </FormGroup>
-      </FormRow>
+        </Form.Item>
+      </div>
 
-      <FormRow>
-        <FormGroup>
-          <FormLabel>
-            Currency <Required>*</Required>
-          </FormLabel>
-          <FormSelect value={entry.currency} onChange={(e) => onUpdate("currency", e.target.value)} required>
+      <div className={FormRow}>
+        <Form.Item className={FormGroup}>
+          <label className={FormLabel}>
+            Currency <span className={Required}>*</span>
+          </label>
+          <Select
+            value={entry.currency}
+            onChange={(e) => onUpdate("currency", e)}
+          >
             <option value="USD ($)">USD ($)</option>
             <option value="EUR (€)">EUR (€)</option>
             <option value="GBP (£)">GBP (£)</option>
             <option value="CAD ($)">CAD ($)</option>
-          </FormSelect>
-        </FormGroup>
-        <FormGroup>
-          <FormLabel>
-            Spend Category <Required>*</Required>
-          </FormLabel>
-          <FormSelect value={entry.category} onChange={(e) => onUpdate("category", e.target.value)} required>
+          </Select>
+        </Form.Item>
+        <Form.Item className={FormGroup}>
+          <label className={FormLabel}>
+            Spend Category <span className={Required}>*</span>
+          </label>
+          <Select
+            className={FormSelect}  
+            value={entry.category}
+            onChange={(e) => onUpdate("category", e)}
+          >
             <option value="">Select category</option>
             <option value="Natural Gas">Natural Gas</option>
             <option value="Heating Oil">Heating Oil</option>
             <option value="Propane">Propane</option>
             <option value="Other Fuels">Other Fuels</option>
-          </FormSelect>
-        </FormGroup>
-      </FormRow>
+          </Select>
+        </Form.Item>
+      </div>
 
-      <FormGroup>
-        <FormLabel>Description</FormLabel>
-        <FormTextarea
+      <Form.Item className={FormGroup}>
+        <label className={FormLabel}>Description</label>
+        <Input.TextArea
+          className={FormTextarea}
           rows={3}
           placeholder="Description of spending category and any additional details..."
           value={entry.description}
           onChange={(e) => onUpdate("description", e.target.value)}
         />
-      </FormGroup>
-    </EntryContainer>
-  )
-}
+      </Form.Item>
+    </Form>
+  );
+};
 
-export default SpendEntry
+export default SpendEntry;
+
