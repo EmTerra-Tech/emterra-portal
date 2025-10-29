@@ -1,7 +1,6 @@
-/** @jsxImportSource @emotion/react */
+import Sidebar from "@components/sidebar";
+import TopBar from "@components/top-bar";
 import type { ReactNode } from "react";
-import Sidebar from "../sidebar";
-import TopBar from "../top-bar";
 
 import { LayoutContainer, MainContent } from "./styles";
 
