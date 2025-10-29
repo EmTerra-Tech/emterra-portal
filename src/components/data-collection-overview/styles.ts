@@ -1,0 +1,7 @@
+import { css } from "@emotion/css"
+
+export const Container = css`
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+`

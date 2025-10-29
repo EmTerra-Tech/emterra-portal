@@ -3,7 +3,7 @@ import TextConstants from "@/constants/textConstants";
 import * as styles from "./styles";
 import Image from "next/image";
 import world_logo from "@public/world_logo.png";
-import Loginform from "@/components/LoginForm";
+import Loginform from "@/components/login-form";
 
 console.log("styles", styles);
 
