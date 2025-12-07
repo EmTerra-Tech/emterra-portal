@@ -1,28 +1,27 @@
-/** @jsxImportSource @emotion/react */
+"use client";
+
+import { Button } from "antd";
 import { useState } from "react";
-import ActivityEntry from "../activity-entry";
+import EmissionsEntry from "../emissions-entry";
 import { AddEntryBtn, AddEntrySection, DataSection } from "./styles";
 
-interface ActivityEntryData {
+export interface EmissionsEntryData {
   id: number;
-  fuelType: string;
-  amount: string;
+  emissionsValue: number;
   unit: string;
-  equipment: string;
-  notes: string;
+  methodology: string;
+  description: string;
 }
 
-const ActivityDataSection = () => {
-  const [entries, setEntries] = useState<ActivityEntryData[]>([
+const EmissionsDataSection = () => {
+  const [entries, setEntries] = useState<EmissionsEntryData[]>([
     {
       id: 1,
-      fuelType: "Natural Gas",
-      amount: "1250",
-      unit: "m³ (cubic meters)",
-      equipment: "Boiler",
-      notes: "Main heating system for the headquarters building",
+      emissionsValue: 0.0,
+      unit: "",
+      methodology: "",
+      description: "",
     },
-
   ]);
 
   const addEntry = () => {
@@ -31,11 +30,10 @@ const ActivityDataSection = () => {
       ...entries,
       {
         id: newId,
-        fuelType: "",
-        amount: "",
+        emissionsValue: 0.0,
         unit: "",
-        equipment: "",
-        notes: "",
+        methodology: "",
+        description: "",
       },
     ]);
   };
@@ -50,7 +48,7 @@ const ActivityDataSection = () => {
 
   const updateEntry = (
     id: number,
-    field: keyof ActivityEntryData,
+    field: keyof EmissionsEntryData,
     value: string,
   ) => {
     setEntries(
@@ -63,7 +61,7 @@ const ActivityDataSection = () => {
   return (
     <div className={DataSection}>
       {entries.map((entry, index) => (
-        <ActivityEntry
+        <EmissionsEntry
           key={entry.id}
           entry={entry}
           entryNumber={index + 1}
@@ -71,14 +69,15 @@ const ActivityDataSection = () => {
           onUpdate={(field, value) => updateEntry(entry.id, field, value)}
         />
       ))}
+
       <div className={AddEntrySection}>
-        <button onClick={addEntry} className={AddEntryBtn}>
+        <Button className={AddEntryBtn} onClick={addEntry}>
           <span>+</span> Add Another Entry
-        </button>
+        </Button>
       </div>
     </div>
   );
 };
 
-export default ActivityDataSection;
+export default EmissionsDataSection;
 

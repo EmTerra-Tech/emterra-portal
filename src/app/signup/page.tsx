@@ -1,17 +1,17 @@
 "use client";
 
-import TextConstants from "@/constants/textConstants";
-import * as styles from "./styles";
-import Image from "next/image";
-import world_logo from "@public/world_logo.png";
 import SignUpForm from "@/components/signup-form";
+import TextConstants from "@/constants/textConstants";
 import { CheckSquareFilled } from "@ant-design/icons";
+import emterra_logo from "@public/emterra_icon.png";
+import Image from "next/image";
+import * as styles from "./styles";
 export default function SignUpPage() {
   return (
     <div className={styles.page}>
       <div className={styles.left}>
         <div className={styles.logoOutline}>
-          <Image className={styles.logo} alt="Logo" src={world_logo} />
+          <Image className={styles.logo} alt="Logo" src={emterra_logo} />
         </div>
         <span className={styles.title}>{TextConstants.title}</span>
         <span className={styles.subtitle}>{TextConstants.signUpSubtitle}</span>

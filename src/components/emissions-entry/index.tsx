@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Form, Input, Select } from "antd";
+import { EmissionsEntryData } from "../emissions-data-section";
 import {
   EntryContainer,
   EntryHeader,
@@ -15,28 +16,19 @@ import {
   Required,
 } from "./styles";
 
-interface SpendEntryData {
-  id: number;
-  supplier: string;
-  amount: string;
-  currency: string;
-  category: string;
-  description: string;
-}
-
-interface SpendEntryProps {
-  entry: SpendEntryData;
+interface EmissionsEntryProps {
+  entry: EmissionsEntryData;
   entryNumber: number;
   onRemove: () => void;
-  onUpdate: (field: keyof SpendEntryData, value: string) => void;
+  onUpdate: (field: keyof EmissionsEntryData, value: string) => void;
 }
 
-const SpendEntry = ({
+const EmissionsEntry = ({
   entry,
   entryNumber,
   onRemove,
   onUpdate,
-}: SpendEntryProps) => {
+}: EmissionsEntryProps) => {
   return (
     <Form className={EntryContainer}>
       <div className={EntryHeader}>
@@ -48,61 +40,47 @@ const SpendEntry = ({
 
       <div className={FormRow}>
         <Form.Item className={FormGroup}>
-          <label className={FormLabel}>Supplier/Vendor</label>
+          <label className={FormLabel}>Direct Emissions Value</label>
           <Input
             className={FormInput}
             type="text"
             placeholder="Energy supplier name"
-            value={entry.supplier}
-            onChange={(e) => onUpdate("supplier", e.target.value)}
+            value={entry.emissionsValue}
+            onChange={(e) => onUpdate("emissionsValue", e.target.value)}
           />
         </Form.Item>
         <Form.Item className={FormGroup}>
           <label className={FormLabel}>
-            Total Spend Amount <span className={Required}>*</span>
+            Unit <span className={Required}>*</span>
           </label>
-          <Input
-            className={FormInput}
-            type="number"
-            placeholder="0.00"
-            step="0.01"
-            value={entry.amount}
-            onChange={(e) => onUpdate("amount", e.target.value)}
-            required
-          />
+          <Select
+            className={FormSelect}
+            value={entry.unit}
+            onChange={(e) => onUpdate("unit", e)}
+          >
+            <option value="tCO₂e">tCO₂e (Tonnes CO₂ equivalent)</option>
+            <option value="kgCO₂e">kgCO₂e (Kilograms CO₂ equivalent)</option>
+          </Select>
         </Form.Item>
       </div>
 
       <div className={FormRow}>
         <Form.Item className={FormGroup}>
           <label className={FormLabel}>
-            Currency <span className={Required}>*</span>
-          </label>
-          <Select
-            className={FormSelect}
-            value={entry.currency}
-            onChange={(e) => onUpdate("currency", e)}
-          >
-            <option value="USD ($)">USD ($)</option>
-            <option value="EUR (€)">EUR (€)</option>
-            <option value="GBP (£)">GBP (£)</option>
-            <option value="CAD ($)">CAD ($)</option>
-          </Select>
-        </Form.Item>
-        <Form.Item className={FormGroup}>
-          <label className={FormLabel}>
             Spend Category <span className={Required}>*</span>
           </label>
           <Select
             className={FormSelect}
-            value={entry.category}
-            onChange={(e) => onUpdate("category", e)}
+            value={entry.methodology}
+            onChange={(e) => onUpdate("methodology", e)}
           >
-            <option value="">Select category</option>
-            <option value="Natural Gas">Natural Gas</option>
-            <option value="Heating Oil">Heating Oil</option>
-            <option value="Propane">Propane</option>
-            <option value="Other Fuels">Other Fuels</option>
+            <option value="">Select methodology</option>
+            <option value="ghg-protocol">GHG Protocol</option>
+            <option value="epa">EPA (Environmental Protection Agency)</option>
+            <option value="defra">DEFRA (UK Government)</option>
+            <option value="ipcc">IPCC Guidelines</option>
+            <option value="iso14064">ISO 14064</option>
+            <option value="other">Other</option>
           </Select>
         </Form.Item>
       </div>
@@ -121,5 +99,5 @@ const SpendEntry = ({
   );
 };
 
-export default SpendEntry;
+export default EmissionsEntry;
 

@@ -1,5 +1,7 @@
 "use client";
 
+import emterra_logo from "@public/emterra_icon.png";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   NavIcon,
@@ -8,7 +10,7 @@ import {
   NavTitle,
   SidebarContainer,
   SidebarLogo,
-  SidebarLogoIcon,
+  logo,
 } from "./styles";
 
 const navItems = [
@@ -63,8 +65,7 @@ const Sidebar = () => {
   return (
     <div className={SidebarContainer}>
       <div className={SidebarLogo}>
-        <div className={SidebarLogoIcon}>🌍</div>
-        <span style={{ fontWeight: 600, fontSize: "16px" }}>EmTerra</span>
+        <Image className={logo} alt="Logo" src={emterra_logo} />
       </div>
 
       {Object.entries(groupedItems).map(([section, items]) => (

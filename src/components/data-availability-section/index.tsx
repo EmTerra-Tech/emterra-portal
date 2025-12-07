@@ -1,16 +1,23 @@
-"use client"
+"use client";
 
-import { FormGroup, FormLabel, RadioGroup, RadioOption } from "./styles"
+import { FormGroup, FormLabel, RadioGroup, RadioOption } from "./styles";
 
 interface DataAvailabilitySectionProps {
-  availability: "yes" | "not_available" | "not_applicable"
-  onAvailabilityChange: (value: "yes" | "not_available" | "not_applicable") => void
+  availability: "yes" | "not_available" | "not_applicable";
+  onAvailabilityChange: (
+    value: "yes" | "not_available" | "not_applicable",
+  ) => void;
 }
 
-const DataAvailabilitySection = ({ availability, onAvailabilityChange }: DataAvailabilitySectionProps) => {
+const DataAvailabilitySection = ({
+  availability,
+  onAvailabilityChange,
+}: DataAvailabilitySectionProps) => {
   return (
     <FormGroup>
-      <FormLabel>Do you have stationary combustion data for this facility?</FormLabel>
+      <FormLabel>
+        Do you have stationary combustion data for this facility?
+      </FormLabel>
       <RadioGroup>
         <RadioOption>
           <input
@@ -43,11 +50,12 @@ const DataAvailabilitySection = ({ availability, onAvailabilityChange }: DataAva
             checked={availability === "not_applicable"}
             onChange={() => onAvailabilityChange("not_applicable")}
           />
-          <label htmlFor="availability_not_applicable">Not applicable</label>
+          <label htmlFor="availability_not_applicable">Not Collected</label>
         </RadioOption>
       </RadioGroup>
     </FormGroup>
-  )
-}
+  );
+};
 
-export default DataAvailabilitySection
+export default DataAvailabilitySection;
+

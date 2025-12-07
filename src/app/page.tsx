@@ -2,7 +2,7 @@
 import TextConstants from "@/constants/textConstants";
 import * as styles from "./styles";
 import Image from "next/image";
-import world_logo from "@public/world_logo.png";
+import emterra_logo from "@public/emterra_icon.png";
 import Loginform from "@/components/login-form";
 
 console.log("styles", styles);
@@ -12,7 +12,7 @@ export default function Home() {
     <div className={styles.page}>
       <div className={styles.left}>
         <div className={styles.logoOutline}>
-          <Image className={styles.logo} alt="Logo" src={world_logo} />
+          <Image className={styles.logo} alt="Logo" src={emterra_logo} />
         </div>
         <span className={styles.title}>{TextConstants.title}</span>
         <span className={styles.subtitle}>{TextConstants.signInSubtitle}</span>

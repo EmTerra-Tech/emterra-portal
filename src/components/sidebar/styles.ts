@@ -4,7 +4,7 @@ export const SidebarContainer = css`
   width: 250px;
   background: #1e293b;
   color: white;
-  padding: 20px 0;
+  // padding: 20px 0;
   overflow-y: auto;
 `
 
@@ -13,7 +13,9 @@ export const SidebarLogo = css`
   align-items: center;
   gap: 12px;
   padding: 0 20px;
+  height: 64px;
   margin-bottom: 30px;
+  background: #FFFFFF;
 `
 
 export const SidebarLogoIcon = css`
@@ -65,6 +67,12 @@ export const NavItem = (active: boolean) =>
       cursor: ${active ? "default" :"pointer"};
     }
   `
+
+  export const logo = css`
+  height: 60px;
+  width: 60px;
+`;
+
 
 export const NavIcon = css`
   width: 20px;

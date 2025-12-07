@@ -1,23 +1,27 @@
-"use client"
+"use client";
 
-import { Header, Title, Description, YearSelect } from "./styles"
+import { Select } from "antd";
+import { Description, Header, Title, YearSelect } from "./styles";
 
 const DataInputHeader = () => {
   return (
-    <Header>
+    <div className={Header}>
       <div>
-        <Title>
+        <h2 className={Title}>
           <span>🔥</span> Stationary Combustion Data
-        </Title>
-        <Description>Add emissions data for fuel combustion in stationary equipment</Description>
+        </h2>
+        <p className={Description}>
+          Add emissions data for fuel combustion in stationary equipment
+        </p>
       </div>
-      <YearSelect>
-        <option>2024</option>
+      <Select className={YearSelect} defaultValue="2025">
+        <option>2025</option>
         <option>2023</option>
         <option>2022</option>
-      </YearSelect>
-    </Header>
-  )
-}
+      </Select>
+    </div>
+  );
+};
 
-export default DataInputHeader
+export default DataInputHeader;
+

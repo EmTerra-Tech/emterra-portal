@@ -9,7 +9,7 @@ import ValidationSummary from "../validation-summary";
 
 const containerStyle = css`
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 10px auto;
   padding: 0 24px;
 `;
 
@@ -19,7 +19,7 @@ const scopesData = [
     title: "Scope 1 - Direct Emissions",
     description:
       "Direct greenhouse gas emissions from sources owned or controlled by your organization",
-    icon: "🔥",
+    icon: "S1",
     progress: 65,
     iconBg: "linear-gradient(135deg, #ef4444, #dc2626)",
     categories: [
@@ -74,7 +74,7 @@ const scopesData = [
     title: "Scope 2 - Indirect Energy Emissions",
     description:
       "Emissions from purchased electricity, steam, heating, and cooling",
-    icon: "⚡",
+    icon: "S2",
     progress: 83,
     iconBg: "linear-gradient(135deg, #f59e0b, #d97706)",
     categories: [
@@ -118,7 +118,7 @@ const scopesData = [
     title: "Scope 3 - Other Indirect Emissions",
     description:
       "All indirect emissions in your value chain (upstream and downstream)",
-    icon: "🌐",
+    icon: "S3",
     progress: 42,
     iconBg: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
     categories: [

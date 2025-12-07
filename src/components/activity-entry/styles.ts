@@ -80,7 +80,8 @@ export const FormInput = css`
 
 export const FormSelect = css`
   width: 100%;
-  padding: 12px 16px;
+  // padding: 12px 16px;
+    height: 50px;
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
