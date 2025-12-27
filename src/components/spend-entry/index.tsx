@@ -26,26 +26,16 @@ interface SpendEntryData {
 
 interface SpendEntryProps {
   entry: SpendEntryData;
-  entryNumber: number;
-  onRemove: () => void;
   onUpdate: (field: keyof SpendEntryData, value: string) => void;
 }
 
 const SpendEntry = ({
   entry,
-  entryNumber,
-  onRemove,
+
   onUpdate,
 }: SpendEntryProps) => {
   return (
     <Form className={EntryContainer}>
-      <div className={EntryHeader}>
-        <h2 className={EntryTitle}>Entry {entryNumber}</h2>
-        <Button className={RemoveBtn} onClick={onRemove} title="Remove Entry">
-          ✕
-        </Button>
-      </div>
-
       <div className={FormRow}>
         <Form.Item className={FormGroup}>
           <label className={FormLabel}>Supplier/Vendor</label>

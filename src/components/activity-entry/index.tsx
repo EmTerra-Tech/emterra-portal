@@ -1,17 +1,14 @@
 "use client";
 
-import { Form, Select, Input } from "antd";
+import { Form, Input, Select } from "antd";
 import {
   EntryContainer,
-  EntryHeader,
-  EntryTitle,
   FormGroup,
   FormInput,
   FormLabel,
   FormRow,
   FormSelect,
   FormTextarea,
-  RemoveBtn,
   Required,
 } from "./styles";
 
@@ -26,26 +23,12 @@ interface ActivityEntryData {
 
 interface ActivityEntryProps {
   entry: ActivityEntryData;
-  entryNumber: number;
-  onRemove: () => void;
-  onUpdate: (field: keyof ActivityEntryData, value: string) => void;
+  onUpdate: (field: string, value: string) => void;
 }
 
-const ActivityEntry = ({
-  entry,
-  entryNumber,
-  onRemove,
-  onUpdate,
-}: ActivityEntryProps) => {
+const ActivityEntry = ({ entry, onUpdate }: ActivityEntryProps) => {
   return (
     <Form className={EntryContainer}>
-      <div className={EntryHeader}>
-        <div className={EntryTitle}>Entry {entryNumber}</div>
-        <div className={RemoveBtn} onClick={onRemove} title="Remove Entry">
-          ✕
-        </div>
-      </div>
-
       <div className={FormRow}>
         <Form.Item className={FormGroup}>
           <label className={FormLabel}>

@@ -1,7 +1,8 @@
 "use client";
 
+import CompanyActions from "@/service/company-profile/actions";
+import { Facility } from "@/service/company-profile/types";
 import {
-  Alert,
   Button,
   Card,
   Col,
@@ -10,21 +11,13 @@ import {
   Row,
   Select,
   Space,
-  Switch,
   Tag,
   Typography,
   message,
 } from "antd";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import {
-  Container,
-  FacilityCard,
-  FormCard,
-  HeaderCard,
-  StatusCard,
-  StatusItem,
-} from "./styles";
+import { useEffect, useState } from "react";
+import { Container, FacilityCard, FormCard, HeaderCard } from "./styles";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -38,16 +31,41 @@ const AddFacilityForm = () => {
     2023: true,
     2022: false,
   });
+  const [existingFacilities, setExistingFacilities] = useState<Facility[]>([]);
 
-  const handleToggleYear = (year: number, checked: boolean) => {
-    setYearStatus((prev) => ({ ...prev, [year]: checked }));
-  };
+  useEffect(() => {
+    const fetchFacilities = async () => {
+      const response = await CompanyActions.fetchCompanyProfileWithDetails();
+      setExistingFacilities(response.facilities);
+    };
 
-  const handleSubmit = (values: any) => {
-    console.log("Form values:", values);
-    console.log("Year status:", yearStatus);
-    message.success("Facility information saved successfully!");
-    router.push("/company-profile");
+    fetchFacilities();
+  }, []);
+
+  // const handleToggleYear = (year: number, checked: boolean) => {
+  //   setYearStatus((prev) => ({ ...prev, [year]: checked }));
+  // };
+
+  const handleSubmit = async (values: any) => {
+    try {
+      await CompanyActions.addFacility({
+        name: values.name,
+        address: values.address,
+        city: values.city,
+        country: values.country,
+        phone: values.phone,
+        zipcode: values.zipCode,
+        description: values.description || "",
+        type: values.facilityType,
+        officeSpace: values.officeSpace,
+        spaceType: values.spaceUnit,
+        empCount: values.fteCount,
+      });
+      message.success("Facility added successfully!");
+      router.push("/company-profile");
+    } catch (error) {
+      message.error("Failed to add facility. Please try again.");
+    }
   };
 
   const handleCancel = () => {
@@ -63,21 +81,6 @@ const AddFacilityForm = () => {
     { value: "retail", label: "Retail Location" },
     { value: "datacenter", label: "Data Center" },
     { value: "other", label: "Other" },
-  ];
-
-  const existingFacilities = [
-    {
-      name: "Seattle HQ",
-      location: "Seattle, WA",
-      size: "45,000 sq ft",
-      fte: "850 FTE",
-    },
-    {
-      name: "Austin Plant",
-      location: "Austin, TX",
-      size: "78,000 sq ft",
-      fte: "1,200 FTE",
-    },
   ];
 
   return (
@@ -209,7 +212,7 @@ const AddFacilityForm = () => {
           </div>
 
           {/* Operational Status Section */}
-          <div style={{ marginBottom: 32 }}>
+          {/* <div style={{ marginBottom: 32 }}>
             <Title level={4} style={{ marginBottom: 20 }}>
               <Space>
                 <span>⚙️</span>
@@ -309,7 +312,7 @@ const AddFacilityForm = () => {
                 style={{ marginTop: 16 }}
               />
             </Card>
-          </div>
+          </div> */}
 
           {/* Additional Information Section */}
           <div style={{ marginBottom: 32 }}>
@@ -394,7 +397,7 @@ const AddFacilityForm = () => {
                   📍 {facility.location}
                 </Text>
                 <Text type="secondary" style={{ fontSize: 12 }}>
-                  {facility.size} • {facility.fte}
+                  {facility.size} • {facility.employees}
                 </Text>
               </Card>
             </Col>

@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
-import { useState } from "react";
 import ActivityEntry from "../activity-entry";
-import { AddEntryBtn, AddEntrySection, DataSection } from "./styles";
+import { DataSection } from "./styles";
 
 interface ActivityEntryData {
   id: number;
@@ -12,70 +11,22 @@ interface ActivityEntryData {
   notes: string;
 }
 
-const ActivityDataSection = () => {
-  const [entries, setEntries] = useState<ActivityEntryData[]>([
-    {
-      id: 1,
-      fuelType: "Natural Gas",
-      amount: "1250",
-      unit: "m³ (cubic meters)",
-      equipment: "Boiler",
-      notes: "Main heating system for the headquarters building",
-    },
+export interface ActivityDataSectionProps {
+  data: ActivityEntryData;
+  onUpdateEntry: (id: number, field: string, value: string) => void;
+}
 
-  ]);
-
-  const addEntry = () => {
-    const newId = Math.max(...entries.map((e) => e.id)) + 1;
-    setEntries([
-      ...entries,
-      {
-        id: newId,
-        fuelType: "",
-        amount: "",
-        unit: "",
-        equipment: "",
-        notes: "",
-      },
-    ]);
-  };
-
-  const removeEntry = (id: number) => {
-    if (entries.length > 1) {
-      setEntries(entries.filter((entry) => entry.id !== id));
-    } else {
-      alert("At least one entry is required.");
-    }
-  };
-
-  const updateEntry = (
-    id: number,
-    field: keyof ActivityEntryData,
-    value: string,
-  ) => {
-    setEntries(
-      entries.map((entry) =>
-        entry.id === id ? { ...entry, [field]: value } : entry,
-      ),
-    );
-  };
-
+const ActivityDataSection = ({
+  data,
+  onUpdateEntry,
+}: ActivityDataSectionProps) => {
   return (
     <div className={DataSection}>
-      {entries.map((entry, index) => (
-        <ActivityEntry
-          key={entry.id}
-          entry={entry}
-          entryNumber={index + 1}
-          onRemove={() => removeEntry(entry.id)}
-          onUpdate={(field, value) => updateEntry(entry.id, field, value)}
-        />
-      ))}
-      <div className={AddEntrySection}>
-        <button onClick={addEntry} className={AddEntryBtn}>
-          <span>+</span> Add Another Entry
-        </button>
-      </div>
+      <ActivityEntry
+        key={data.id}
+        entry={data}
+        onUpdate={(field, value) => onUpdateEntry(data.id, field, value)}
+      />
     </div>
   );
 };

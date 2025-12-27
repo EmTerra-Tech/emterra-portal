@@ -1,43 +1,31 @@
 "use client";
 
-import { Button, Form, Input, Select } from "antd";
+import { Form, Input, Select } from "antd";
 import { EmissionsEntryData } from "../emissions-data-section";
 import {
   EntryContainer,
-  EntryHeader,
-  EntryTitle,
   FormGroup,
   FormInput,
   FormLabel,
   FormRow,
   FormSelect,
   FormTextarea,
-  RemoveBtn,
   Required,
 } from "./styles";
 
 interface EmissionsEntryProps {
   entry: EmissionsEntryData;
-  entryNumber: number;
-  onRemove: () => void;
+
   onUpdate: (field: keyof EmissionsEntryData, value: string) => void;
 }
 
 const EmissionsEntry = ({
   entry,
-  entryNumber,
-  onRemove,
+
   onUpdate,
 }: EmissionsEntryProps) => {
   return (
     <Form className={EntryContainer}>
-      <div className={EntryHeader}>
-        <h2 className={EntryTitle}>Entry {entryNumber}</h2>
-        <Button className={RemoveBtn} onClick={onRemove} title="Remove Entry">
-          ✕
-        </Button>
-      </div>
-
       <div className={FormRow}>
         <Form.Item className={FormGroup}>
           <label className={FormLabel}>Direct Emissions Value</label>
