@@ -1,8 +1,9 @@
 import createAxiosClient from "@/utils/axiosClient";
 import { AnnualData, CompanyProfile, Facility } from './types';
 import BranchActions from "../branch/actions";
+import { API_BASE_URL } from "@/utils/config";
 
-const client = createAxiosClient(process.env.BE_BASE_URL || "http://localhost:8080");
+const client = createAxiosClient(API_BASE_URL);
 
 // Function to fetch company profile data with details
 export const fetchCompanyProfileWithDetails = async (): Promise<{
@@ -12,7 +13,7 @@ export const fetchCompanyProfileWithDetails = async (): Promise<{
 }> => {
   try {
     // Fetch user profile (includes company info)
-    const userClient = createAxiosClient(process.env.BE_BASE_URL + "/users" || "http://localhost:8080/users");
+    const userClient = createAxiosClient(`${API_BASE_URL}/users`);
     const profileResponse = await userClient.get("/profile");
     const profileData = profileResponse.data.data;
 

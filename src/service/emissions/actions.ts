@@ -1,10 +1,9 @@
 import createAxiosClient from "@/utils/axiosClient";
+import { API_BASE_URL } from "@/utils/config";
 
 export type EntryType = "activity" | "spend" | "emissions";
 
-const client = createAxiosClient(
-  process.env.BE_BASE_URL + "/branches" || "http://localhost:8080/branches"
-);
+const client = createAxiosClient(`${API_BASE_URL}/branches`);
 
 export interface ActivityEntryData {
   id: number;

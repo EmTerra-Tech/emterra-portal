@@ -1,9 +1,8 @@
 import createAxiosClient from "@/utils/axiosClient";
 import { DashboardStats } from "./types";
+import { API_BASE_URL } from "@/utils/config";
 
-const client = createAxiosClient(
-  process.env.BE_BASE_URL + "/dashboard" || "http://localhost:8080/dashboard"
-);
+const client = createAxiosClient(`${API_BASE_URL}/dashboard`);
 
 const getDashboardStats = async (): Promise<DashboardStats> => {
   try {

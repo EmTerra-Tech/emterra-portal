@@ -1,8 +1,7 @@
 import createAxiosClient from "@/utils/axiosClient";
+import { API_BASE_URL } from "@/utils/config";
 
-const client = createAxiosClient(
-  process.env.BE_BASE_URL + "/form-schema" || "http://localhost:8080/form-schema"
-);
+const client = createAxiosClient(`${API_BASE_URL}/form-schema`);
 
 export interface SchemaField {
   inputKey: string;

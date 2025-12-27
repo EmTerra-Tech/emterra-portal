@@ -1,8 +1,9 @@
 import createAxiosClient from "@/utils/axiosClient";
 import { setCookie, deleteCookie } from "@/utils/cookies";
 import { LoginFormDataType, SignUpFormDataType } from "./types";
+import { API_BASE_URL } from "@/utils/config";
 
-const client = createAxiosClient(process.env.BE_BASE_URL + "/users" || "http://localhost:8080/users");
+const client = createAxiosClient(`${API_BASE_URL}/users`);
 
 const signUpAndCreateUser = async (userData: SignUpFormDataType) => {
   try {

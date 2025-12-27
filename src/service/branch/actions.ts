@@ -1,9 +1,8 @@
 import createAxiosClient from "@/utils/axiosClient";
 import { CreateBranchRequest, Branch } from "./types";
+import { API_BASE_URL } from "@/utils/config";
 
-const client = createAxiosClient(
-  process.env.BE_BASE_URL + "/branches" || "http://localhost:8080/branches"
-);
+const client = createAxiosClient(`${API_BASE_URL}/branches`);
 
 const createBranch = async (branchData: CreateBranchRequest) => {
   try {

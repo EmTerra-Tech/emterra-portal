@@ -1,9 +1,8 @@
 import createAxiosClient from "@/utils/axiosClient";
 import { Scope } from "./types";
+import { API_BASE_URL } from "@/utils/config";
 
-const client = createAxiosClient(
-  process.env.BE_BASE_URL + "/data-collection" || "http://localhost:8080/data-collection"
-);
+const client = createAxiosClient(`${API_BASE_URL}/data-collection`);
 
 const EmissionCollectionActions = {
   fetchEmissionCollectionData: async (): Promise<Scope[]> => {
