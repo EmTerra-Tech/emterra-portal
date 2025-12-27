@@ -39,8 +39,8 @@ export const StatLabel = css`
   margin-bottom: 8px;
 `
 
-export const StatChange = (variant: "positive" | "negative") => css`
+export const StatChange = (variant: "positive" | "negative" | "neutral") => css`
   font-size: 12px;
   font-weight: 600;
-  color: ${variant === "positive" ? "#059669" : "#dc2626"};
+  color: ${variant === "positive" ? "#059669" : variant === "negative" ? "#dc2626" : "#64748b"};
 `
