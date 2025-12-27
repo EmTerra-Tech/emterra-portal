@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import EmissionCollectionActions from "@/service/emissions/actions"
 import {
   Card,
   CategoryHeader,

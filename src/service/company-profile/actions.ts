@@ -1,7 +1,8 @@
 import createAxiosClient from "@/utils/axiosClient";
 import { AnnualData, CompanyProfile, Facility } from './types';
+import BranchActions from "../branch/actions";
 
-const client = createAxiosClient(process.env.BE_BASE_URL + "/company-profile" || "http://localhost:4000/api/company-profile");
+const client = createAxiosClient(process.env.BE_BASE_URL || "http://localhost:8080");
 
 // Function to fetch company profile data with details
 export const fetchCompanyProfileWithDetails = async (): Promise<{
@@ -10,38 +11,45 @@ export const fetchCompanyProfileWithDetails = async (): Promise<{
   facilities: Facility[];
 }> => {
   try {
-    // Uncomment the following lines when the actual API is ready
-    // const response = await client.get("/profile-with-details");
-    // return response.data;
+    // Fetch user profile (includes company info)
+    const userClient = createAxiosClient(process.env.BE_BASE_URL + "/users" || "http://localhost:8080/users");
+    const profileResponse = await userClient.get("/profile");
+    const profileData = profileResponse.data.data;
 
-    // Mock data simulating the API response
-    const mockResponse = {
-      companyProfile: {
-        companyName: "GreenTech Solutions",
-        email: "admin@greentech.com",
-        phone: "+1-415-555-0100",
-        address: "123 Green Street, San Francisco, USA",
-        website: "https://greentech.com",
-        description: "Leading provider of sustainable technology solutions",
-        industry: "Technology",
-        foundedYear: 2020,
-        headquarters: "San Francisco",
-      },
-      annualData: [
-        { key: "1", year: "2024", employees: "2,450", revenue: "$180M", status: "progress" },
-        { key: "2", year: "2023", employees: "2,268", revenue: "$161M", status: "complete" },
-        { key: "3", year: "2022", employees: "2,100", revenue: "$145M", status: "complete" },
-      ],
-      facilities: [
-        { name: "Seattle HQ", type: "Headquarters & Manufacturing", location: "Seattle, WA", size: "45,000 sq ft", employees: "850 employees", status: "active" },
-        { name: "Austin Plant", type: "Manufacturing Facility", location: "Austin, TX", size: "78,000 sq ft", employees: "1,200 employees", status: "active" },
-        { name: "Phoenix R&D", type: "Research & Development", location: "Phoenix, AZ", size: "25,000 sq ft", employees: "400 employees", status: "active" },
-      ],
+    // Fetch facilities (branches)
+    const branches = await BranchActions.getAllBranches();
+
+    // Map backend data to frontend format
+    const companyProfile: CompanyProfile = {
+      companyName: profileData.company.name,
+      email: profileData.email,
+      phone: profileData.company.phone || "",
+      address: profileData.company.address || "",
+      website: profileData.company.website || "",
+      description: profileData.company.description || "",
+      industry: profileData.company.industry || "",
+      foundedYear: profileData.company.foundedYear || 0,
+      headquarters: profileData.company.headquarters || "",
     };
 
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(mockResponse), 500); // Simulate API delay
-    });
+    // Map facilities
+    const facilities: Facility[] = branches.map((branch) => ({
+      name: branch.name,
+      type: branch.type,
+      location: `${branch.city}, ${branch.country}`,
+      size: `${branch.officeSpace} ${branch.spaceType}`,
+      employees: `${branch.empCount} employees`,
+      status: branch.isActive ? "active" : "inactive",
+    }));
+
+    // Annual data is not yet available from backend, using empty array
+    const annualData: AnnualData[] = [];
+
+    return {
+      companyProfile,
+      annualData,
+      facilities,
+    };
   } catch (error) {
     console.error("Error fetching company profile with details:", error);
     throw error;
@@ -53,21 +61,32 @@ const addFacility = async (facilityData: {
   address: string;
   city: string;
   country: string;
-  phone: string;
+  phone?: string;
   zipcode: string;
-  description: string;
+  description?: string;
   type: string;
   officeSpace: number;
   spaceType: string;
   empCount: number;
 }): Promise<void> => {
   try {
-    // Uncomment the following lines when the actual API is ready
-    // const response = await client.post("/branches/signup", facilityData);
-    // return response.data;
+    // Map form values to backend format
+    const branchData = {
+      name: facilityData.name,
+      address: facilityData.address,
+      city: facilityData.city,
+      country: facilityData.country,
+      zipcode: facilityData.zipcode,
+      description: facilityData.description || "",
+      type: facilityData.type as any,
+      officeSpace: facilityData.officeSpace,
+      spaceType: facilityData.spaceType as any,
+      empCount: facilityData.empCount,
+      phone: facilityData.phone || "",
+    };
 
-    console.log("Mock API call to add facility:", facilityData);
-    return new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API delay
+    const response = await BranchActions.createBranch(branchData);
+    return response.data;
   } catch (error) {
     console.error("Error adding facility:", error);
     throw error;

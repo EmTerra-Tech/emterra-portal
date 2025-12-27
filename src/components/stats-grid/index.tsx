@@ -5,35 +5,40 @@ import {
   StatsContainer,
   StatValue,
 } from "./styles";
+import { StatsData } from "@/service/dashboard/types";
 
-const statsData = [
-  {
-    value: "15,234",
-    label: "Total CO₂e (tonnes)",
-    change: "↗ +2.3% vs last quarter",
-    variant: "negative" as const,
-  },
-  {
-    value: "87%",
-    label: "Data Quality Score",
-    change: "↗ +5% vs last quarter",
-    variant: "positive" as const,
-  },
-  {
-    value: "92%",
-    label: "Data Coverage Score",
-    change: "↗ +3% vs last quarter",
-    variant: "positive" as const,
-  },
-  {
-    value: "6.2",
-    label: "Intensity (tCO₂e/employee)",
-    change: "↘ -5.8% vs last quarter",
-    variant: "positive" as const,
-  },
-];
+interface StatsGridProps {
+  stats?: StatsData;
+}
 
-const StatsGrid = () => {
+const StatsGrid = ({ stats }: StatsGridProps) => {
+  const statsData = [
+    {
+      value: stats?.totalEmissions || "0",
+      label: "Total CO₂e (tonnes)",
+      change: "vs last quarter",
+      variant: "neutral" as const,
+    },
+    {
+      value: stats?.dataQualityScore || "0%",
+      label: "Data Quality Score",
+      change: "vs last quarter",
+      variant: "positive" as const,
+    },
+    {
+      value: stats?.dataCoverageScore || "0%",
+      label: "Data Coverage Score",
+      change: "vs last quarter",
+      variant: "positive" as const,
+    },
+    {
+      value: stats?.intensityPerEmployee || "0",
+      label: "Intensity (tCO₂e/employee)",
+      change: "vs last quarter",
+      variant: "neutral" as const,
+    },
+  ];
+
   return (
     <div className={StatsContainer}>
       {statsData.map((stat, index) => (

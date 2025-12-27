@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  env:{
-    BE_BASE_URL: "https://emterra-be-production.up.railway.app"
+  env: {
+    BE_BASE_URL: "http://localhost:8080"
   }
 };
 

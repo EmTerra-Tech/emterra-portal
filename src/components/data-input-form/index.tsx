@@ -4,13 +4,17 @@ import DataInputHeader from "../data-input-header"
 import FacilityCard from "../facility-card"
 import { Content, MainCard, BrowserBar, BrowserDots, Dot, UrlBar, FormContent } from "./styles"
 
-const DataInputForm = () => {
+interface DataInputFormProps {
+  scope: string;
+}
+
+const DataInputForm = ({ scope }: DataInputFormProps) => {
   return (
     <Content>
       <MainCard>
         <FormContent>
-          <DataInputHeader />
-          <FacilityCard />
+          <DataInputHeader scope={scope} />
+          <FacilityCard scope={scope} />
         </FormContent>
       </MainCard>
     </Content>

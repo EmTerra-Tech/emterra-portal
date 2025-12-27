@@ -8,6 +8,7 @@ import {
   Col,
   Form,
   Input,
+  InputNumber,
   Row,
   Select,
   Space,
@@ -48,22 +49,27 @@ const AddFacilityForm = () => {
 
   const handleSubmit = async (values: any) => {
     try {
-      await CompanyActions.addFacility({
+      const facilityData = {
         name: values.name,
         address: values.address,
         city: values.city,
         country: values.country,
-        phone: values.phone,
+        phone: values.phone || "",
         zipcode: values.zipCode,
         description: values.description || "",
         type: values.facilityType,
-        officeSpace: values.officeSpace,
+        officeSpace: Number(values.officeSpace),
         spaceType: values.spaceUnit,
-        empCount: values.fteCount,
-      });
+        empCount: Number(values.fteCount),
+      };
+
+      console.log("Submitting facility data:", facilityData);
+
+      await CompanyActions.addFacility(facilityData);
       message.success("Facility added successfully!");
       router.push("/company-profile");
     } catch (error) {
+      console.error("Error submitting facility:", error);
       message.error("Failed to add facility. Please try again.");
     }
   };
@@ -73,14 +79,14 @@ const AddFacilityForm = () => {
   };
 
   const facilityTypes = [
-    { value: "headquarters", label: "Headquarters" },
-    { value: "manufacturing", label: "Manufacturing Plant" },
-    { value: "warehouse", label: "Warehouse" },
-    { value: "office", label: "Office Building" },
-    { value: "rd", label: "Research & Development" },
-    { value: "retail", label: "Retail Location" },
-    { value: "datacenter", label: "Data Center" },
-    { value: "other", label: "Other" },
+    { value: "HEADQUARTERS", label: "Headquarters" },
+    { value: "MANUFACTURING", label: "Manufacturing Plant" },
+    { value: "WAREHOUSE", label: "Warehouse" },
+    { value: "OFFICE", label: "Office Building" },
+    { value: "RD", label: "Research & Development" },
+    { value: "RETAIL", label: "Retail Location" },
+    { value: "DATACENTER", label: "Data Center" },
+    { value: "OTHER", label: "Other" },
   ];
 
   return (
@@ -139,7 +145,25 @@ const AddFacilityForm = () => {
             </Form.Item>
 
             <Row gutter={16}>
-              <Col span={12}>
+              <Col span={8}>
+                <Form.Item
+                  label="City"
+                  name="city"
+                  rules={[{ required: true, message: "Please enter city" }]}
+                >
+                  <Input placeholder="e.g., Austin" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label="Country"
+                  name="country"
+                  rules={[{ required: true, message: "Please enter country" }]}
+                >
+                  <Input placeholder="e.g., USA" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
                 <Form.Item
                   label="Zip Code"
                   name="zipCode"
@@ -148,6 +172,26 @@ const AddFacilityForm = () => {
                   <Input placeholder="e.g., 78704" />
                 </Form.Item>
               </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Phone Number"
+                  name="phone"
+                  rules={[
+                    {
+                      pattern: /^[+]?[0-9\-\(\)\s]{7,20}$/,
+                      message: "Phone number format is invalid",
+                    },
+                  ]}
+                >
+                  <Input placeholder="e.g., +1-234-567-8900" />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="Office Space" required>
                   <Input.Group compact>
@@ -161,16 +205,16 @@ const AddFacilityForm = () => {
                         },
                       ]}
                     >
-                      <Input
+                      <InputNumber
                         placeholder="e.g., 45000"
                         style={{ width: "70%" }}
-                        type="number"
+                        min={1}
                       />
                     </Form.Item>
-                    <Form.Item name="spaceUnit" noStyle initialValue="sqft">
+                    <Form.Item name="spaceUnit" noStyle initialValue="SQFT">
                       <Select style={{ width: "30%" }}>
-                        <Option value="sqft">sq.ft</Option>
-                        <Option value="sqm">sq.metre</Option>
+                        <Option value="SQFT">sq.ft</Option>
+                        <Option value="SQM">sq.metre</Option>
                       </Select>
                     </Form.Item>
                   </Input.Group>
@@ -205,7 +249,7 @@ const AddFacilityForm = () => {
                   ]}
                   help="Full-time equivalent employees"
                 >
-                  <Input placeholder="e.g., 850" type="number" />
+                  <InputNumber placeholder="e.g., 850" style={{ width: "100%" }} min={1} />
                 </Form.Item>
               </Col>
             </Row>

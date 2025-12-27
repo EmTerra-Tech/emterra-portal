@@ -72,7 +72,7 @@ export default function SignUpForm() {
               </Form.Item>
               <Form.Item
                 label="Founded Year"
-                name="foudnedYear"
+                name="foundedYear"
                 required={false}
                 rules={[
                   {
@@ -113,32 +113,11 @@ export default function SignUpForm() {
                 />
               </Form.Item>
               <Form.Item
-                label="Company Logo"
-                name="companyLogo"
-                valuePropName="fileList"
-                getValueFromEvent={normFile}
+                label="Company Logo (URL)"
+                name="logoUrl"
                 required={false}
-                rules={[
-                  {
-                    required: true,
-                    message: "Please upload the company logo!",
-                  },
-                ]}
               >
-                <Upload listType="picture-card">
-                  <button
-                    style={{
-                      color: "inherit",
-                      cursor: "inherit",
-                      border: 0,
-                      background: "none",
-                    }}
-                    type="button"
-                  >
-                    <BankOutlined />
-                    <div style={{ marginTop: 8 }}>Upload</div>
-                  </button>
-                </Upload>
+                <Input placeholder="https://yourcompany.com/logo.png" />
               </Form.Item>
             </div>
           </div>
@@ -186,7 +165,7 @@ export default function SignUpForm() {
               <Form.Item
                 className={styles.spanfull}
                 label="Business Address"
-                name="businessAddress"
+                name="address"
                 required={false}
                 rules={[
                   {
@@ -199,7 +178,7 @@ export default function SignUpForm() {
               </Form.Item>
               <Form.Item
                 label="Phone Number"
-                name="phoneNumber"
+                name="phone"
                 required={false}
                 rules={[
                   {
@@ -212,7 +191,7 @@ export default function SignUpForm() {
               </Form.Item>
               <Form.Item
                 label="Company Website"
-                name="companyWebsite"
+                name="website"
                 required={false}
                 rules={[
                   {
@@ -318,20 +297,52 @@ export default function SignUpForm() {
           </div>
         </div>
         <div className={styles.mandatoryCheck}>
-          <Checkbox className={styles.mandatoryCheckTiles}>
-            <span>{SignUpConstants.tcAndPrivacyCheck}</span>{" "}
-            <span className={styles.link}>
-              {SignUpConstants.termsOfService}
-            </span>
-            {" and "}
-            <span className={styles.link}>{SignUpConstants.privacyPolicy}</span>
-          </Checkbox>
-          <Checkbox className={styles.mandatoryCheckTiles}>
-            {SignUpConstants.featureUpdateCheck}
-          </Checkbox>
-          <Checkbox className={styles.mandatoryCheckTiles}>
-            {SignUpConstants.dataConsentCheck}
-          </Checkbox>
+          <Form.Item
+            name="terms"
+            valuePropName="checked"
+            rules={[
+              {
+                validator: (_, value) =>
+                  value
+                    ? Promise.resolve()
+                    : Promise.reject(
+                        new Error("You must accept the terms and conditions")
+                      ),
+              },
+            ]}
+          >
+            <Checkbox className={styles.mandatoryCheckTiles}>
+              <span>{SignUpConstants.tcAndPrivacyCheck}</span>{" "}
+              <span className={styles.link}>
+                {SignUpConstants.termsOfService}
+              </span>
+              {" and "}
+              <span className={styles.link}>{SignUpConstants.privacyPolicy}</span>
+            </Checkbox>
+          </Form.Item>
+          <Form.Item name="updates" valuePropName="checked" initialValue={false}>
+            <Checkbox className={styles.mandatoryCheckTiles}>
+              {SignUpConstants.featureUpdateCheck}
+            </Checkbox>
+          </Form.Item>
+          <Form.Item
+            name="processing"
+            valuePropName="checked"
+            rules={[
+              {
+                validator: (_, value) =>
+                  value
+                    ? Promise.resolve()
+                    : Promise.reject(
+                        new Error("You must consent to data processing")
+                      ),
+              },
+            ]}
+          >
+            <Checkbox className={styles.mandatoryCheckTiles}>
+              {SignUpConstants.dataConsentCheck}
+            </Checkbox>
+          </Form.Item>
         </div>
         <Button
           className={styles.submit}

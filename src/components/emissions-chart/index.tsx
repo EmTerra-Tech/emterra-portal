@@ -20,28 +20,46 @@ import {
   SummaryValue,
   SummaryChange,
 } from "./styles"
+import { EmissionsBreakdown } from "@/service/dashboard/types"
 
-const legendData = [
-  { color: "#ef4444", label: "Scope 1 - Direct Emissions", value: "45%" },
-  { color: "#f59e0b", label: "Scope 2 - Electricity", value: "35%" },
-  { color: "#8b5cf6", label: "Scope 3 - Indirect", value: "20%" },
-]
+interface EmissionsChartProps {
+  emissionsData?: EmissionsBreakdown;
+}
 
-const EmissionsChart = () => {
+const EmissionsChart = ({ emissionsData }: EmissionsChartProps) => {
+  const legendData = [
+    {
+      color: "#ef4444",
+      label: "Scope 1 - Direct Emissions",
+      value: `${Math.round(emissionsData?.scope1Percentage || 0)}%`
+    },
+    {
+      color: "#f59e0b",
+      label: "Scope 2 - Electricity",
+      value: `${Math.round(emissionsData?.scope2Percentage || 0)}%`
+    },
+    {
+      color: "#8b5cf6",
+      label: "Scope 3 - Indirect",
+      value: `${Math.round(emissionsData?.scope3Percentage || 0)}%`
+    },
+  ];
+
+  const currentQuarter = `Q${Math.floor((new Date().getMonth() + 3) / 3)} ${new Date().getFullYear()}`;
+  const totalEmissions = emissionsData?.totalEmissions || "0";
+
   return (
     <ChartCard>
       <ChartHeader>
         <ChartTitle>Emissions by Scope</ChartTitle>
         <ChartSelect>
-          <option>Q4 2024</option>
-          <option>Q3 2024</option>
-          <option>Q2 2024</option>
+          <option>{currentQuarter}</option>
         </ChartSelect>
       </ChartHeader>
       <ScopeBreakdownChart>
         <PieChart>
           <PieCenter>
-            <PieTotal>15,234</PieTotal>
+            <PieTotal>{totalEmissions}</PieTotal>
             <PieLabel>tCO₂e</PieLabel>
           </PieCenter>
         </PieChart>
@@ -56,8 +74,8 @@ const EmissionsChart = () => {
         </ScopeLegend>
         <TotalSummary>
           <SummaryLabel>Total Quarterly Emissions</SummaryLabel>
-          <SummaryValue>15,234 tCO₂e</SummaryValue>
-          <SummaryChange>+2.3% vs Q3 2024</SummaryChange>
+          <SummaryValue>{totalEmissions} tCO₂e</SummaryValue>
+          <SummaryChange>vs previous quarter</SummaryChange>
         </TotalSummary>
       </ScopeBreakdownChart>
     </ChartCard>

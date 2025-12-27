@@ -1,8 +1,10 @@
-import axios from "axios";
-
-// Mock API for fetching all stationary combustion entries for a facility
+import createAxiosClient from "@/utils/axiosClient";
 
 export type EntryType = "activity" | "spend" | "emissions";
+
+const client = createAxiosClient(
+  process.env.BE_BASE_URL + "/branches" || "http://localhost:8080/branches"
+);
 
 export interface ActivityEntryData {
   id: number;
@@ -38,79 +40,108 @@ export interface CombustionEntry {
 // EmissionCollectionActions: API namespace for emission-related endpoints
 const EmissionCollectionActions = {
   /**
-   * Fetch all stationary combustion entries for a facility (mock implementation)
+   * Fetch emission data filtered by scope from the backend
    */
-  getCombustionEntries: async (): Promise<CombustionEntry[]> => {
-    // Simulate API delay and return mock data
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            type: "activity",
-            data: {
-              id: 1,
-              fuelType: "Natural Gas",
-              amount: "1250",
-              unit: "m³ (cubic meters)",
-              equipment: "Boiler",
-              notes: "Main heating system for the headquarters building",
-            },
-          },
-          {
-            type: "spend",
-            data: {
-              id: 2,
-              supplier: "Acme Energy",
-              amount: "5000",
-              currency: "USD",
-              category: "Fuel Purchase",
-              description: "Natural gas for Q1",
-            },
-          },
-          {
-            type: "emissions",
-            data: {
-              id: 3,
-              emissionsValue: 3200,
-              unit: "kg CO₂e",
-              methodology: "Default emission factor",
-              description: "Calculated for Q1 combustion",
-            },
-          },
-        ]);
-      }, 500);
-    });
+  getCombustionEntries: async (scope: string): Promise<any[]> => {
+    try {
+      const response = await client.get("/emission-data");
+      // Response format: { success: true, message: "Success", data: [...] }
+      if (response.data.success && response.data.data) {
+        // Filter by scope if scope is provided
+        const allData = response.data.data;
+        if (scope) {
+          return allData.filter((entry: any) => entry.scope === scope);
+        }
+        return allData;
+      }
+      return []; // Return empty array if no data
+    } catch (error: any) {
+      console.error("Error fetching emission data:", error);
+      return []; // Return empty array on error
+    }
   },
 
   /**
-   * POST API to add a stationary combustion entry (real endpoint)
-   * Endpoint: /emission/scope1/stationary-combustion
-   * Example body (from Postman):
-   * {
-   *   "branchId": 1,
-   *   "year": 2024,
-   *   "scope": "SCOPE1_STATIONARY_COMBUSTION",
-   *   "availability": "YES",
-   *   "state": "DRAFT",
-   *   "data": { ... }
-   * }
+   * POST API to add emission data
    */
-  postCombustionEntry: async (entries: any[]): Promise<{ success: boolean }> => {
-    // Replace with actual branchId, year, and data as needed
-    const payload = {
-      branchId:  1,
-      year:  new Date().getFullYear(),
-      scope: "SCOPE1_STATIONARY_COMBUSTION",
-      availability: "YES",
-      state: "DRAFT",
-      data: entries,
-    };
-    // Replace baseUrl with your actual API base URL
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-    const url = `${baseUrl}/emission/scope1/stationary-combustion`;
-    // This is a real API call, update headers/auth as needed
-    const response = await axios.post(url, payload);
-    return response.data;
+  postCombustionEntry: async (
+    entries: any[],
+    scope: string,
+    year: number,
+    availability: "yes" | "not_available" | "not_applicable",
+    state: "DRAFT" | "SUBMITTED",
+    branchId?: number
+  ): Promise<any> => {
+    try {
+      if (entries.length === 0 && availability === "yes") {
+        return { success: true, message: "No data to save" };
+      }
+
+      // Map availability to backend enum
+      const availabilityMap = {
+        yes: "YES",
+        not_available: "NOT_AVAILABLE",
+        not_applicable: "NOT_APPLICABLE",
+      };
+
+      // Filter out the 'id' field from entry data before sending to backend
+      const cleanedData = entries.length > 0 ? { ...entries[0] } : {};
+      if (cleanedData.id) {
+        delete cleanedData.id;
+      }
+
+      const emissionData = {
+        branchId: branchId || 1,
+        year: year,
+        scope: scope,
+        availability: availabilityMap[availability],
+        state: state,
+        data: cleanedData,
+      };
+
+      console.log("Sending emission data:", emissionData);
+      const response = await client.post("/emission-data", emissionData);
+      return response.data;
+    } catch (error: any) {
+      console.error("Error posting emission data:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to save emission data"
+      );
+    }
+  },
+
+  /**
+   * Save availability status for a scope
+   */
+  saveAvailability: async (
+    scope: string,
+    year: number,
+    availability: "yes" | "not_available" | "not_applicable",
+    branchId?: number
+  ): Promise<any> => {
+    try {
+      const availabilityMap = {
+        yes: "YES",
+        not_available: "NOT_AVAILABLE",
+        not_applicable: "NOT_APPLICABLE",
+      };
+
+      const emissionData = {
+        branchId: branchId || 1,
+        year: year,
+        scope: scope,
+        availability: availabilityMap[availability],
+        state: "DRAFT",
+        data: {},
+      };
+
+      const response = await client.post("/emission-data", emissionData);
+      return response.data;
+    } catch (error: any) {
+      console.error("Error saving availability:", error);
+      // Don't throw error for availability changes, just log it
+      return { success: false };
+    }
   },
 };
 
