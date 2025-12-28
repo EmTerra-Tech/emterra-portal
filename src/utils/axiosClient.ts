@@ -7,7 +7,6 @@ const createAxiosClient = (baseURL: string) => {
     headers: {
       "Content-Type": "application/json",
     },
-    withCredentials: true,
   });
 
   // Add a request interceptor
