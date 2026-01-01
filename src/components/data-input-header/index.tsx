@@ -78,6 +78,14 @@ const DataInputHeader = ({ scope }: DataInputHeaderProps) => {
     description: "Add emissions data for this category",
   };
 
+  const yearOptions = [
+    { value: 2025, label: '2025' },
+    { value: 2024, label: '2024' },
+    { value: 2023, label: '2023' },
+    { value: 2022, label: '2022' },
+    { value: 2021, label: '2021' },
+  ];
+
   return (
     <div className={Header}>
       <div>
@@ -86,11 +94,11 @@ const DataInputHeader = ({ scope }: DataInputHeaderProps) => {
         </h2>
         <p className={Description}>{info.description}</p>
       </div>
-      <Select className={YearSelect} defaultValue="2025">
-        <option>2025</option>
-        <option>2024</option>
-        <option>2023</option>
-      </Select>
+      <Select
+        className={YearSelect}
+        defaultValue={2025}
+        options={yearOptions}
+      />
     </div>
   );
 };

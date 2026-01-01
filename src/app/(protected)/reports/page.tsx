@@ -1,292 +1,408 @@
 "use client";
 
 import DashboardLayout from "../../../components/dashboard-layout";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Table, Button, Modal, Form, Select, Tag, Space, message, Tooltip } from 'antd';
+import { FileTextOutlined, DownloadOutlined, DeleteOutlined, FilePdfOutlined, FileExcelOutlined, FileOutlined } from '@ant-design/icons';
+import { ReportsActions, ReportGenerateRequest } from '@/service/reports/actions';
+import { useAuth } from '@/context/AuthContext';
+import type { ColumnsType } from 'antd/es/table';
+
+interface ReportData {
+  id: number;
+  reportType: string;
+  reportYear: number;
+  branchId?: number;
+  branchName?: string;
+  fileFormat: string;
+  fileUrl?: string;
+  fileSizeBytes?: number;
+  status: string;
+  errorMessage?: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+const REPORT_TYPES = [
+  { label: 'Emissions Summary', value: 'EMISSIONS_SUMMARY' },
+  { label: 'Scope 1', value: 'SCOPE_1' },
+  { label: 'Scope 2', value: 'SCOPE_2' },
+  { label: 'Scope 3', value: 'SCOPE_3' },
+  { label: 'Data Quality', value: 'DATA_QUALITY' },
+  { label: 'Compliance', value: 'COMPLIANCE' },
+];
+
+const FILE_FORMATS = [
+  { label: 'PDF', value: 'PDF' },
+  { label: 'Excel', value: 'EXCEL' },
+  { label: 'CSV', value: 'CSV' },
+];
 
 export default function ReportsPage() {
-  const [selectedYear, setSelectedYear] = useState("2025");
+  const [reports, setReports] = useState<ReportData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [generateModalOpen, setGenerateModalOpen] = useState(false);
+  const [form] = Form.useForm();
+
+  const { branches, selectedBranchId, hasAnyRole, canManageConfiguration, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    loadReports();
+  }, [selectedBranchId]);
+
+  const loadReports = async () => {
+    try {
+      setLoading(true);
+      const data = await ReportsActions.getAllReports(selectedBranchId || undefined);
+      setReports(data || []);
+    } catch (error) {
+      message.error('Failed to load reports');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateReport = async (values: any) => {
+    try {
+      const request: ReportGenerateRequest = {
+        reportType: values.reportType,
+        reportYear: values.reportYear,
+        branchId: values.branchId,
+        fileFormat: values.fileFormat,
+        parameters: {
+          startMonth: values.startMonth,
+          endMonth: values.endMonth,
+          includeCharts: values.includeCharts,
+          includeRawData: values.includeRawData,
+        },
+      };
+      const response = await ReportsActions.generateReport(request);
+      message.success('Report generated successfully. Downloading...');
+      setGenerateModalOpen(false);
+      form.resetFields();
+
+      // Auto-download the generated report
+      if (response?.id) {
+        await handleDownloadReportById(response.id, values.reportType, values.reportYear, values.fileFormat);
+      }
+
+      // Reload reports to show new report in list
+      loadReports();
+    } catch (error) {
+      message.error('Failed to generate report');
+      console.error(error);
+    }
+  };
+
+  const handleDownloadReportById = async (reportId: number, reportType: string, reportYear: number, fileFormat: string) => {
+    try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+      const token = localStorage.getItem('accessToken');
+
+      // Fetch the file with authentication using the new download endpoint
+      const response = await fetch(`${API_BASE_URL}/reports/${reportId}/download`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download report');
+      }
+
+      // Get the blob from response
+      const blob = await response.blob();
+
+      // Create filename
+      const filename = `${reportType}_${reportYear}.${fileFormat.toLowerCase()}`;
+
+      // Create download link and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      message.success(`Downloaded ${reportType} - ${reportYear}`);
+    } catch (error) {
+      console.error('Download error:', error);
+      message.error('Failed to download report');
+    }
+  };
+
+  const handleDeleteReport = async (reportId: number) => {
+    try {
+      await ReportsActions.deleteReport(reportId);
+      message.success('Report deleted successfully');
+      loadReports();
+    } catch (error) {
+      message.error('Failed to delete report');
+      console.error(error);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    const statusColors: Record<string, string> = {
+      'PENDING': 'default',
+      'GENERATING': 'processing',
+      'COMPLETED': 'success',
+      'FAILED': 'error',
+    };
+    return statusColors[status] || 'default';
+  };
+
+  const getFileIcon = (format: string) => {
+    if (format === 'PDF') return <FilePdfOutlined style={{ color: '#f5222d' }} />;
+    if (format === 'EXCEL') return <FileExcelOutlined style={{ color: '#52c41a' }} />;
+    return <FileOutlined />;
+  };
+
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return '-';
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(2)} MB`;
+  };
+
+  const formatReportType = (type: string) => {
+    return type.replace(/_/g, ' ');
+  };
+
+  const columns: ColumnsType<ReportData> = [
+    {
+      title: 'Report',
+      key: 'report',
+      render: (_, record) => (
+        <Space>
+          {getFileIcon(record.fileFormat)}
+          <div>
+            <div style={{ fontWeight: 600 }}>{formatReportType(record.reportType)}</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              {record.reportYear} {record.branchName && `• ${record.branchName}`}
+            </div>
+          </div>
+        </Space>
+      ),
+    },
+    {
+      title: 'Format',
+      dataIndex: 'fileFormat',
+      key: 'fileFormat',
+      render: (format: string) => <Tag>{format}</Tag>,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <Tag color={getStatusColor(status)}>
+          {status}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Size',
+      dataIndex: 'fileSizeBytes',
+      key: 'fileSizeBytes',
+      render: formatFileSize,
+    },
+    {
+      title: 'Created',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date: string) => new Date(date).toLocaleString(),
+    },
+    {
+      title: 'Completed',
+      dataIndex: 'completedAt',
+      key: 'completedAt',
+      render: (date?: string) => date ? new Date(date).toLocaleString() : '-',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          {record.status === 'COMPLETED' && (
+            <Tooltip title="Download Report">
+              <Button
+                type="link"
+                icon={<DownloadOutlined />}
+                onClick={() => handleDownloadReportById(record.id, record.reportType, record.reportYear, record.fileFormat)}
+              >
+                Download
+              </Button>
+            </Tooltip>
+          )}
+          {canManageConfiguration() && (
+            <Tooltip title="Delete Report">
+              <Button
+                type="link"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => handleDeleteReport(record.id)}
+              >
+                Delete
+              </Button>
+            </Tooltip>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
+  // Generate current year and past 5 years
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 6 }, (_, i) => ({
+    label: String(currentYear - i),
+    value: currentYear - i,
+  }));
+
+  const monthOptions = [
+    { label: 'January', value: 'JANUARY' },
+    { label: 'February', value: 'FEBRUARY' },
+    { label: 'March', value: 'MARCH' },
+    { label: 'April', value: 'APRIL' },
+    { label: 'May', value: 'MAY' },
+    { label: 'June', value: 'JUNE' },
+    { label: 'July', value: 'JULY' },
+    { label: 'August', value: 'AUGUST' },
+    { label: 'September', value: 'SEPTEMBER' },
+    { label: 'October', value: 'OCTOBER' },
+    { label: 'November', value: 'NOVEMBER' },
+    { label: 'December', value: 'DECEMBER' },
+  ];
+
+  if (authLoading) {
+    return (
+      <DashboardLayout>
+        <div style={{ padding: "24px", textAlign: "center" }}>
+          <p>Loading...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
       <div style={{ padding: "24px", maxWidth: "1400px", margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#1e293b", marginBottom: "8px" }}>
-            📊 Reports & Analytics
-          </h1>
-          <p style={{ fontSize: "16px", color: "#64748b" }}>
-            View and download emission reports for your organization
-          </p>
-        </div>
-
-        {/* Year Selector */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
           <div>
-            <label style={{ fontSize: "14px", fontWeight: "600", color: "#374151", marginRight: "12px" }}>
-              Reporting Year:
-            </label>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              style={{
-                padding: "8px 16px",
-                border: "2px solid #e5e7eb",
-                borderRadius: "8px",
-                fontSize: "14px",
-                color: "#1e293b",
-                cursor: "pointer",
-              }}
+            <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "8px" }}>
+              Reports & Analytics
+            </h1>
+            <p style={{ fontSize: "16px", color: "#666" }}>
+              Generate and download emission reports
+            </p>
+          </div>
+          {!authLoading && hasAnyRole(['ROLE_COMPANY_ADMIN', 'ROLE_BRANCH_ADMIN']) && (
+            <Button
+              type="primary"
+              icon={<FileTextOutlined />}
+              onClick={() => setGenerateModalOpen(true)}
+              size="large"
             >
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-            </select>
-          </div>
+              Generate Report
+            </Button>
+          )}
         </div>
 
-        {/* Report Cards Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px", marginBottom: "32px" }}>
-          {/* Emissions Summary Report */}
-          <ReportCard
-            icon="📈"
-            title="Emissions Summary Report"
-            description="Comprehensive overview of all emissions across scopes"
-            status="Available"
-            statusColor="#10b981"
-          />
+        {/* Reports Table */}
+        <Table
+          columns={columns}
+          dataSource={reports}
+          loading={loading}
+          rowKey="id"
+          pagination={{ pageSize: 10 }}
+        />
 
-          {/* Scope 1 Report */}
-          <ReportCard
-            icon="🔥"
-            title="Scope 1 Report"
-            description="Direct emissions from owned or controlled sources"
-            status="Available"
-            statusColor="#10b981"
-          />
+        {/* Generate Report Modal */}
+        <Modal
+          title="Generate New Report"
+          open={generateModalOpen}
+          onCancel={() => {
+            setGenerateModalOpen(false);
+            form.resetFields();
+          }}
+          footer={null}
+          width={600}
+        >
+          <Form form={form} layout="vertical" onFinish={handleGenerateReport}>
+            <Form.Item
+              name="reportType"
+              label="Report Type"
+              rules={[{ required: true, message: 'Please select a report type' }]}
+            >
+              <Select options={REPORT_TYPES} placeholder="Select report type" />
+            </Form.Item>
 
-          {/* Scope 2 Report */}
-          <ReportCard
-            icon="⚡"
-            title="Scope 2 Report"
-            description="Indirect emissions from purchased electricity"
-            status="Available"
-            statusColor="#10b981"
-          />
+            <Form.Item
+              name="reportYear"
+              label="Report Year"
+              rules={[{ required: true, message: 'Please select a year' }]}
+            >
+              <Select options={yearOptions} placeholder="Select year" />
+            </Form.Item>
 
-          {/* Scope 3 Report */}
-          <ReportCard
-            icon="🌐"
-            title="Scope 3 Report"
-            description="Other indirect emissions in the value chain"
-            status="In Progress"
-            statusColor="#f59e0b"
-          />
+            <Form.Item name="branchId" label="Branch">
+              <Select
+                options={[
+                  { label: 'All Branches', value: undefined },
+                  ...branches.map(b => ({ label: b.name, value: b.id }))
+                ]}
+                placeholder="Select branch (optional for company-wide reports)"
+              />
+            </Form.Item>
 
-          {/* Data Quality Report */}
-          <ReportCard
-            icon="✅"
-            title="Data Quality Report"
-            description="Assessment of data completeness and accuracy"
-            status="Available"
-            statusColor="#10b981"
-          />
+            <Form.Item
+              name="fileFormat"
+              label="File Format"
+              rules={[{ required: true, message: 'Please select a format' }]}
+            >
+              <Select options={FILE_FORMATS} placeholder="Select format" />
+            </Form.Item>
 
-          {/* Compliance Report */}
-          <ReportCard
-            icon="📋"
-            title="Compliance Report"
-            description="GHG Protocol and regulatory compliance report"
-            status="Available"
-            statusColor="#10b981"
-          />
-        </div>
+            <Form.Item name="startMonth" label="Start Month (Optional)">
+              <Select options={monthOptions} placeholder="Select start month" />
+            </Form.Item>
 
-        {/* Export Options */}
-        <div style={{
-          background: "white",
-          border: "1px solid #e2e8f0",
-          borderRadius: "16px",
-          padding: "24px",
-          marginBottom: "24px",
-        }}>
-          <h3 style={{ fontSize: "18px", fontWeight: "700", color: "#1e293b", marginBottom: "16px" }}>
-            Export Options
-          </h3>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            <ExportButton icon="📄" label="Export as PDF" />
-            <ExportButton icon="📊" label="Export as Excel" />
-            <ExportButton icon="📈" label="Export as CSV" />
-            <ExportButton icon="📑" label="Generate Verification Report" primary />
-          </div>
-        </div>
+            <Form.Item name="endMonth" label="End Month (Optional)">
+              <Select options={monthOptions} placeholder="Select end month" />
+            </Form.Item>
 
-        {/* Recent Reports */}
-        <div style={{
-          background: "white",
-          border: "1px solid #e2e8f0",
-          borderRadius: "16px",
-          padding: "24px",
-        }}>
-          <h3 style={{ fontSize: "18px", fontWeight: "700", color: "#1e293b", marginBottom: "16px" }}>
-            Recent Reports
-          </h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <RecentReportItem
-              name="Emissions Summary Report - 2024"
-              date="Dec 15, 2024"
-              size="2.4 MB"
-            />
-            <RecentReportItem
-              name="Scope 1 Report - Q4 2024"
-              date="Dec 10, 2024"
-              size="1.8 MB"
-            />
-            <RecentReportItem
-              name="Compliance Report - 2024"
-              date="Dec 5, 2024"
-              size="3.2 MB"
-            />
-          </div>
-        </div>
+            <Form.Item name="includeCharts" label="Include Charts" valuePropName="checked">
+              <Select>
+                <Select.Option value={true}>Yes</Select.Option>
+                <Select.Option value={false}>No</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item name="includeRawData" label="Include Raw Data" valuePropName="checked">
+              <Select>
+                <Select.Option value={true}>Yes</Select.Option>
+                <Select.Option value={false}>No</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item>
+              <Space style={{ float: 'right' }}>
+                <Button onClick={() => { setGenerateModalOpen(false); form.resetFields(); }}>
+                  Cancel
+                </Button>
+                <Button type="primary" htmlType="submit">
+                  Generate Report
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
     </DashboardLayout>
-  );
-}
-
-interface ReportCardProps {
-  icon: string;
-  title: string;
-  description: string;
-  status: string;
-  statusColor: string;
-}
-
-function ReportCard({ icon, title, description, status, statusColor }: ReportCardProps) {
-  return (
-    <div style={{
-      background: "white",
-      border: "1px solid #e2e8f0",
-      borderRadius: "12px",
-      padding: "20px",
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.12)";
-      e.currentTarget.style.transform = "translateY(-2px)";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.boxShadow = "none";
-      e.currentTarget.style.transform = "translateY(0)";
-    }}>
-      <div style={{ fontSize: "32px", marginBottom: "12px" }}>{icon}</div>
-      <h4 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "8px" }}>
-        {title}
-      </h4>
-      <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "12px" }}>
-        {description}
-      </p>
-      <div style={{
-        display: "inline-block",
-        padding: "4px 12px",
-        borderRadius: "12px",
-        fontSize: "12px",
-        fontWeight: "600",
-        color: "white",
-        background: statusColor,
-      }}>
-        {status}
-      </div>
-    </div>
-  );
-}
-
-interface ExportButtonProps {
-  icon: string;
-  label: string;
-  primary?: boolean;
-}
-
-function ExportButton({ icon, label, primary }: ExportButtonProps) {
-  return (
-    <button style={{
-      padding: "10px 20px",
-      border: primary ? "none" : "2px solid #e5e7eb",
-      borderRadius: "8px",
-      fontSize: "14px",
-      fontWeight: "600",
-      cursor: "pointer",
-      background: primary ? "linear-gradient(135deg, #2dd4bf, #059669)" : "white",
-      color: primary ? "white" : "#374151",
-      transition: "all 0.2s ease",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-    }}
-    onMouseEnter={(e) => {
-      if (!primary) {
-        e.currentTarget.style.background = "#f8fafc";
-      } else {
-        e.currentTarget.style.transform = "translateY(-2px)";
-      }
-    }}
-    onMouseLeave={(e) => {
-      if (!primary) {
-        e.currentTarget.style.background = "white";
-      } else {
-        e.currentTarget.style.transform = "translateY(0)";
-      }
-    }}>
-      <span>{icon}</span>
-      {label}
-    </button>
-  );
-}
-
-interface RecentReportItemProps {
-  name: string;
-  date: string;
-  size: string;
-}
-
-function RecentReportItem({ name, date, size }: RecentReportItemProps) {
-  return (
-    <div style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "16px",
-      border: "1px solid #e2e8f0",
-      borderRadius: "8px",
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.background = "#f8fafc";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.background = "white";
-    }}>
-      <div>
-        <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b", marginBottom: "4px" }}>
-          {name}
-        </div>
-        <div style={{ fontSize: "12px", color: "#64748b" }}>
-          {date} • {size}
-        </div>
-      </div>
-      <button style={{
-        padding: "6px 16px",
-        border: "none",
-        borderRadius: "6px",
-        fontSize: "12px",
-        fontWeight: "600",
-        cursor: "pointer",
-        background: "linear-gradient(135deg, #2dd4bf, #059669)",
-        color: "white",
-      }}>
-        Download
-      </button>
-    </div>
   );
 }

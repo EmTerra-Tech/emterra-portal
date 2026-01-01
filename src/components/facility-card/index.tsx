@@ -6,6 +6,7 @@ import EmissionCollectionActions from "@/service/emissions/actions";
 import SchemaActions, { SchemaField } from "@/service/schema/actions";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Select, message } from 'antd';
 import DynamicFormSection from "../dynamic-form-section";
 import { AddEntryBtn, AddEntrySection } from "../activity-data-section/styles";
 import DataAvailabilitySection from "../data-availability-section";
@@ -109,6 +110,12 @@ const FacilityCard = ({ scope }: FacilityCardProps) => {
 
   const handleSave = async (state: "DRAFT" | "SUBMITTED") => {
     try {
+      // Validate branch selection first
+      if (!selectedBranchId) {
+        message.error("Please select a branch before saving data.");
+        return false;
+      }
+
       // Prepare data based on availability
       let dataToSend: any[] = [];
 
@@ -120,14 +127,14 @@ const FacilityCard = ({ scope }: FacilityCardProps) => {
         });
 
         if (!hasData) {
-          alert("Please fill in the form data before saving.");
+          message.warning("Please fill in the form data before saving.");
           return false;
         }
         dataToSend = entries;
       } else if (availability === "not_available") {
         // For not_available, send reason field
         if (!notAvailableReason || notAvailableReason.trim() === "") {
-          alert("Please provide a reason why data is not available.");
+          message.warning("Please provide a reason why data is not available.");
           return false;
         }
         dataToSend = [{ reason: notAvailableReason }];
@@ -154,18 +161,19 @@ const FacilityCard = ({ scope }: FacilityCardProps) => {
   const handleSaveDraft = async () => {
     const success = await handleSave("DRAFT");
     if (success) {
-      alert("Draft saved successfully!");
+      message.success("Draft saved successfully!");
     } else {
-      alert("Failed to save draft");
+      message.error("Failed to save draft. Please try again.");
     }
   };
 
   const handleSaveAndContinue = async () => {
     const success = await handleSave("SUBMITTED");
     if (success) {
+      message.success("Data saved successfully!");
       router.push("/data-collection");
     } else {
-      alert("Failed to save data");
+      message.error("Failed to save data. Please ensure you have selected a branch.");
     }
   };
 
@@ -201,21 +209,70 @@ const FacilityCard = ({ scope }: FacilityCardProps) => {
     );
   };
 
+  const selectedBranch = branches.find(b => b.id === selectedBranchId);
+
   return (
     <>
       <style>{animationStyles}</style>
       <Card>
         <FacilityHeader>
-        <FacilityInfo>
-          <h4>🏢 {(selectedBranchId && branches.find(b => b.id === selectedBranchId)?.name) || companyProfile?.companyName || "Select Facility"}</h4>
-          <p>
-            {(selectedBranchId && branches.find(b => b.id === selectedBranchId)?.spaceType) || "Type"} •{" "}
-            {(selectedBranchId && branches.find(b => b.id === selectedBranchId)?.officeSpace) || "0"} sqft •{" "}
-            {(selectedBranchId && branches.find(b => b.id === selectedBranchId)?.empCount) || "0"} Employees
-          </p>
-        </FacilityInfo>
-        <StatusBadge>ACTIVE</StatusBadge>
-      </FacilityHeader>
+          <FacilityInfo>
+            <div style={{ marginBottom: "12px" }}>
+              <FormLabel style={{ marginBottom: "8px", display: "block", fontSize: "14px" }}>
+                🏢 Select Branch / Facility
+              </FormLabel>
+              <Select
+                style={{ width: "100%", maxWidth: "400px" }}
+                size="large"
+                placeholder="Choose a branch to enter data"
+                value={selectedBranchId}
+                onChange={(value) => setSelectedBranchId(value)}
+                options={branches.map(branch => ({
+                  label: `${branch.name} - ${branch.spaceType || 'Office'}`,
+                  value: branch.id,
+                }))}
+                disabled={branches.length === 0}
+              />
+            </div>
+            {selectedBranch && (
+              <div style={{
+                padding: "12px 16px",
+                backgroundColor: "#f0fdf4",
+                borderRadius: "8px",
+                border: "1px solid #86efac",
+                marginTop: "12px"
+              }}>
+                <h4 style={{ margin: "0 0 8px 0", fontSize: "16px", fontWeight: "600", color: "#166534" }}>
+                  🏢 {selectedBranch.name}
+                </h4>
+                <p style={{ margin: 0, fontSize: "13px", color: "#15803d" }}>
+                  <span style={{ fontWeight: "500" }}>Type:</span> {selectedBranch.spaceType || "Office"} •
+                  <span style={{ fontWeight: "500", marginLeft: "8px" }}>Size:</span> {selectedBranch.officeSpace?.toLocaleString() || "0"} sqft •
+                  <span style={{ fontWeight: "500", marginLeft: "8px" }}>Employees:</span> {selectedBranch.empCount || "0"}
+                </p>
+                {selectedBranch.city && (
+                  <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#15803d" }}>
+                    <span style={{ fontWeight: "500" }}>Location:</span> {selectedBranch.city}, {selectedBranch.country}
+                  </p>
+                )}
+              </div>
+            )}
+            {!selectedBranchId && (
+              <div style={{
+                padding: "12px 16px",
+                backgroundColor: "#fef3c7",
+                borderRadius: "8px",
+                border: "1px solid #fbbf24",
+                marginTop: "12px"
+              }}>
+                <p style={{ margin: 0, fontSize: "13px", color: "#92400e", fontWeight: "500" }}>
+                  ⚠️ Please select a branch above to enter emission data
+                </p>
+              </div>
+            )}
+          </FacilityInfo>
+          {selectedBranch && <StatusBadge>ACTIVE</StatusBadge>}
+        </FacilityHeader>
 
       <DataAvailabilitySection
         availability={availability}

@@ -1,340 +1,399 @@
 "use client";
 
 import DashboardLayout from "../../../components/dashboard-layout";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Table, Button, Modal, Form, Input, Select, Tag, Space, message, Popconfirm, Avatar } from 'antd';
+import { UserAddOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { UserActions, UserInviteRequest, UserUpdateRequest } from '@/service/user/actions';
+import { useAuth } from '@/context/AuthContext';
+import type { ColumnsType } from 'antd/es/table';
+
+interface UserData {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  jobTitle?: string;
+  roles: string[];
+  assignedBranchIds: number[];
+  isActive: boolean;
+  lastLoginAt?: string;
+}
+
+const ROLE_OPTIONS = [
+  { label: 'Company Admin', value: 'ROLE_COMPANY_ADMIN' },
+  { label: 'Company Viewer', value: 'ROLE_COMPANY_VIEWER' },
+  { label: 'Branch Admin', value: 'ROLE_BRANCH_ADMIN' },
+  { label: 'Branch Editor', value: 'ROLE_BRANCH_EDITOR' },
+  { label: 'Branch Viewer', value: 'ROLE_BRANCH_VIEWER' },
+];
 
 export default function UsersPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [form] = Form.useForm();
+
+  const { branches, canManageUsers, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await UserActions.getAllUsers();
+      setUsers(data || []);
+    } catch (error) {
+      message.error('Failed to load users');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInviteUser = async (values: any) => {
+    try {
+      const request: UserInviteRequest = {
+        email: values.email,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        jobTitle: values.jobTitle,
+        roles: values.roles,
+        assignedBranchIds: values.assignedBranchIds || [],
+      };
+      await UserActions.inviteUser(request);
+      message.success('User invited successfully');
+      setInviteModalOpen(false);
+      form.resetFields();
+      loadUsers();
+    } catch (error) {
+      message.error('Failed to invite user');
+      console.error(error);
+    }
+  };
+
+  const handleUpdateUser = async (values: any) => {
+    if (!selectedUser) return;
+
+    try {
+      const request: UserUpdateRequest = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        jobTitle: values.jobTitle,
+        roles: values.roles,
+        assignedBranchIds: values.assignedBranchIds || [],
+        isActive: values.isActive,
+      };
+      await UserActions.updateUser(selectedUser.id, request);
+      message.success('User updated successfully');
+      setEditModalOpen(false);
+      setSelectedUser(null);
+      form.resetFields();
+      loadUsers();
+    } catch (error) {
+      message.error('Failed to update user');
+      console.error(error);
+    }
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    try {
+      await UserActions.deleteUser(userId);
+      message.success('User deleted successfully');
+      loadUsers();
+    } catch (error) {
+      message.error('Failed to delete user');
+      console.error(error);
+    }
+  };
+
+  const openEditModal = (user: UserData) => {
+    setSelectedUser(user);
+    form.setFieldsValue({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      jobTitle: user.jobTitle,
+      roles: user.roles,
+      assignedBranchIds: user.assignedBranchIds,
+      isActive: user.isActive,
+    });
+    setEditModalOpen(true);
+  };
+
+  const getRoleColor = (role: string) => {
+    const roleColors: Record<string, string> = {
+      'ROLE_COMPANY_ADMIN': 'gold',
+      'ROLE_COMPANY_VIEWER': 'cyan',
+      'ROLE_BRANCH_ADMIN': 'blue',
+      'ROLE_BRANCH_EDITOR': 'green',
+      'ROLE_BRANCH_VIEWER': 'default',
+    };
+    return roleColors[role] || 'default';
+  };
+
+  const getRoleLabel = (role: string) => {
+    return role.replace('ROLE_', '').replace(/_/g, ' ');
+  };
+
+  const columns: ColumnsType<UserData> = [
+    {
+      title: 'User',
+      key: 'user',
+      render: (_, record) => (
+        <Space>
+          <Avatar style={{ backgroundColor: '#1890ff' }}>
+            {record.firstName[0]}{record.lastName[0]}
+          </Avatar>
+          <div>
+            <div style={{ fontWeight: 600 }}>{record.firstName} {record.lastName}</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>{record.email}</div>
+          </div>
+        </Space>
+      ),
+    },
+    {
+      title: 'Role(s)',
+      dataIndex: 'roles',
+      key: 'roles',
+      render: (roles: string[]) => (
+        <>
+          {roles.map(role => (
+            <Tag key={role} color={getRoleColor(role)}>
+              {getRoleLabel(role)}
+            </Tag>
+          ))}
+        </>
+      ),
+    },
+    {
+      title: 'Job Title',
+      dataIndex: 'jobTitle',
+      key: 'jobTitle',
+    },
+    {
+      title: 'Status',
+      key: 'isActive',
+      dataIndex: 'isActive',
+      render: (isActive: boolean) => (
+        <Tag color={isActive ? 'success' : 'error'}>
+          {isActive ? 'Active' : 'Inactive'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Last Login',
+      dataIndex: 'lastLoginAt',
+      key: 'lastLoginAt',
+      render: (lastLoginAt?: string) => lastLoginAt ? new Date(lastLoginAt).toLocaleString() : 'Never',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          {!authLoading && canManageUsers() && (
+            <>
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => openEditModal(record)}
+              >
+                Edit
+              </Button>
+              <Popconfirm
+                title="Delete user"
+                description="Are you sure you want to delete this user?"
+                onConfirm={() => handleDeleteUser(record.id)}
+                okText="Yes"
+                cancelText="No"
+              >
+                <Button type="link" danger icon={<DeleteOutlined />}>
+                  Delete
+                </Button>
+              </Popconfirm>
+            </>
+          )}
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <DashboardLayout>
       <div style={{ padding: "24px", maxWidth: "1400px", margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
           <div>
-            <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#1e293b", marginBottom: "8px" }}>
-              👥 Users
+            <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "8px" }}>
+              Users Management
             </h1>
-            <p style={{ fontSize: "16px", color: "#64748b" }}>
+            <p style={{ fontSize: "16px", color: "#666" }}>
               Manage user accounts and permissions
             </p>
           </div>
-          <button style={{
-            padding: "12px 24px",
-            border: "none",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontWeight: "600",
-            cursor: "pointer",
-            background: "linear-gradient(135deg, #2dd4bf, #059669)",
-            color: "white",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}>
-            <span>+</span> Invite User
-          </button>
-        </div>
-
-        {/* Search and Filters */}
-        <div style={{
-          background: "white",
-          border: "1px solid #e2e8f0",
-          borderRadius: "12px",
-          padding: "16px",
-          marginBottom: "24px",
-          display: "flex",
-          gap: "12px",
-          alignItems: "center",
-        }}>
-          <input
-            type="text"
-            placeholder="Search users by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              flex: 1,
-              padding: "10px 16px",
-              border: "2px solid #e5e7eb",
-              borderRadius: "8px",
-              fontSize: "14px",
-            }}
-          />
-          <select style={{
-            padding: "10px 16px",
-            border: "2px solid #e5e7eb",
-            borderRadius: "8px",
-            fontSize: "14px",
-            cursor: "pointer",
-          }}>
-            <option>All Roles</option>
-            <option>Admin</option>
-            <option>Manager</option>
-            <option>Viewer</option>
-          </select>
-          <select style={{
-            padding: "10px 16px",
-            border: "2px solid #e5e7eb",
-            borderRadius: "8px",
-            fontSize: "14px",
-            cursor: "pointer",
-          }}>
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Inactive</option>
-            <option>Pending</option>
-          </select>
-        </div>
-
-        {/* Stats Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
-          <StatCard label="Total Users" value="24" trend="+2 this month" />
-          <StatCard label="Active Users" value="22" trend="91.7%" />
-          <StatCard label="Pending Invites" value="3" trend="Awaiting response" />
-          <StatCard label="Admins" value="4" trend="16.7% of total" />
+          {!authLoading && canManageUsers() && (
+            <Button
+              type="primary"
+              icon={<UserAddOutlined />}
+              onClick={() => setInviteModalOpen(true)}
+              size="large"
+            >
+              Invite User
+            </Button>
+          )}
         </div>
 
         {/* Users Table */}
-        <div style={{
-          background: "white",
-          border: "1px solid #e2e8f0",
-          borderRadius: "12px",
-          overflow: "hidden",
-        }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ background: "#f8fafc", borderBottom: "2px solid #e2e8f0" }}>
-                <th style={{ padding: "16px", textAlign: "left", fontSize: "12px", fontWeight: "700", color: "#64748b", textTransform: "uppercase" }}>User</th>
-                <th style={{ padding: "16px", textAlign: "left", fontSize: "12px", fontWeight: "700", color: "#64748b", textTransform: "uppercase" }}>Role</th>
-                <th style={{ padding: "16px", textAlign: "left", fontSize: "12px", fontWeight: "700", color: "#64748b", textTransform: "uppercase" }}>Department</th>
-                <th style={{ padding: "16px", textAlign: "left", fontSize: "12px", fontWeight: "700", color: "#64748b", textTransform: "uppercase" }}>Last Active</th>
-                <th style={{ padding: "16px", textAlign: "left", fontSize: "12px", fontWeight: "700", color: "#64748b", textTransform: "uppercase" }}>Status</th>
-                <th style={{ padding: "16px", textAlign: "left", fontSize: "12px", fontWeight: "700", color: "#64748b", textTransform: "uppercase" }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <UserRow
-                name="Sarah Johnson"
-                email="sarah.johnson@emterra.com"
-                role="Admin"
-                department="Operations"
-                lastActive="2 hours ago"
-                status="Active"
-              />
-              <UserRow
-                name="Michael Chen"
-                email="michael.chen@emterra.com"
-                role="Manager"
-                department="Sustainability"
-                lastActive="5 hours ago"
-                status="Active"
-              />
-              <UserRow
-                name="Emily Davis"
-                email="emily.davis@emterra.com"
-                role="Manager"
-                department="Finance"
-                lastActive="1 day ago"
-                status="Active"
-              />
-              <UserRow
-                name="James Wilson"
-                email="james.wilson@emterra.com"
-                role="Viewer"
-                department="Procurement"
-                lastActive="3 days ago"
-                status="Active"
-              />
-              <UserRow
-                name="Lisa Anderson"
-                email="lisa.anderson@emterra.com"
-                role="Admin"
-                department="IT"
-                lastActive="1 hour ago"
-                status="Active"
-              />
-              <UserRow
-                name="Robert Taylor"
-                email="robert.taylor@emterra.com"
-                role="Viewer"
-                department="Operations"
-                lastActive="2 weeks ago"
-                status="Inactive"
-              />
-              <UserRow
-                name="Jennifer Martinez"
-                email="jennifer.martinez@emterra.com"
-                role="Manager"
-                department="Sustainability"
-                lastActive="Never"
-                status="Pending"
-              />
-            </tbody>
-          </table>
-        </div>
+        <Table
+          columns={columns}
+          dataSource={users}
+          loading={loading}
+          rowKey="id"
+          pagination={{ pageSize: 10 }}
+        />
 
-        {/* Pagination */}
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: "16px",
-        }}>
-          <span style={{ fontSize: "14px", color: "#64748b" }}>
-            Showing 1-7 of 24 users
-          </span>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <PageButton label="Previous" disabled />
-            <PageButton label="1" active />
-            <PageButton label="2" />
-            <PageButton label="3" />
-            <PageButton label="Next" />
-          </div>
-        </div>
+        {/* Invite User Modal */}
+        <Modal
+          title="Invite New User"
+          open={inviteModalOpen}
+          onCancel={() => {
+            setInviteModalOpen(false);
+            form.resetFields();
+          }}
+          footer={null}
+          width={600}
+        >
+          <Form form={form} layout="vertical" onFinish={handleInviteUser}>
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[{ required: true, type: 'email', message: 'Please enter a valid email' }]}
+            >
+              <Input placeholder="user@example.com" />
+            </Form.Item>
+
+            <Form.Item
+              name="firstName"
+              label="First Name"
+              rules={[{ required: true, message: 'Please enter first name' }]}
+            >
+              <Input placeholder="John" />
+            </Form.Item>
+
+            <Form.Item
+              name="lastName"
+              label="Last Name"
+              rules={[{ required: true, message: 'Please enter last name' }]}
+            >
+              <Input placeholder="Doe" />
+            </Form.Item>
+
+            <Form.Item name="jobTitle" label="Job Title">
+              <Input placeholder="Sustainability Manager" />
+            </Form.Item>
+
+            <Form.Item
+              name="roles"
+              label="Roles"
+              rules={[{ required: true, message: 'Please select at least one role' }]}
+            >
+              <Select mode="multiple" options={ROLE_OPTIONS} placeholder="Select roles" />
+            </Form.Item>
+
+            <Form.Item name="assignedBranchIds" label="Assigned Branches">
+              <Select
+                mode="multiple"
+                options={branches.map(b => ({ label: b.name, value: b.id }))}
+                placeholder="Select branches (optional for company-level roles)"
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Space style={{ float: 'right' }}>
+                <Button onClick={() => { setInviteModalOpen(false); form.resetFields(); }}>
+                  Cancel
+                </Button>
+                <Button type="primary" htmlType="submit">
+                  Send Invitation
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        {/* Edit User Modal */}
+        <Modal
+          title="Edit User"
+          open={editModalOpen}
+          onCancel={() => {
+            setEditModalOpen(false);
+            setSelectedUser(null);
+            form.resetFields();
+          }}
+          footer={null}
+          width={600}
+        >
+          <Form form={form} layout="vertical" onFinish={handleUpdateUser}>
+            <Form.Item
+              name="firstName"
+              label="First Name"
+              rules={[{ required: true, message: 'Please enter first name' }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              name="lastName"
+              label="Last Name"
+              rules={[{ required: true, message: 'Please enter last name' }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item name="jobTitle" label="Job Title">
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              name="roles"
+              label="Roles"
+              rules={[{ required: true, message: 'Please select at least one role' }]}
+            >
+              <Select mode="multiple" options={ROLE_OPTIONS} />
+            </Form.Item>
+
+            <Form.Item name="assignedBranchIds" label="Assigned Branches">
+              <Select
+                mode="multiple"
+                options={branches.map(b => ({ label: b.name, value: b.id }))}
+                placeholder="Select branches"
+              />
+            </Form.Item>
+
+            <Form.Item name="isActive" label="Status" valuePropName="checked">
+              <Select>
+                <Select.Option value={true}>Active</Select.Option>
+                <Select.Option value={false}>Inactive</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item>
+              <Space style={{ float: 'right' }}>
+                <Button onClick={() => { setEditModalOpen(false); setSelectedUser(null); form.resetFields(); }}>
+                  Cancel
+                </Button>
+                <Button type="primary" htmlType="submit">
+                  Update User
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
     </DashboardLayout>
-  );
-}
-
-function StatCard({ label, value, trend }: { label: string; value: string; trend: string }) {
-  return (
-    <div style={{
-      background: "white",
-      border: "1px solid #e2e8f0",
-      borderRadius: "12px",
-      padding: "20px",
-    }}>
-      <div style={{ fontSize: "14px", color: "#64748b", marginBottom: "8px" }}>{label}</div>
-      <div style={{ fontSize: "28px", fontWeight: "700", color: "#1e293b", marginBottom: "4px" }}>{value}</div>
-      <div style={{ fontSize: "12px", color: "#10b981" }}>{trend}</div>
-    </div>
-  );
-}
-
-interface UserRowProps {
-  name: string;
-  email: string;
-  role: string;
-  department: string;
-  lastActive: string;
-  status: string;
-}
-
-function UserRow({ name, email, role, department, lastActive, status }: UserRowProps) {
-  const roleColors: Record<string, { bg: string; text: string }> = {
-    "Admin": { bg: "#fef3c7", text: "#92400e" },
-    "Manager": { bg: "#dbeafe", text: "#1e40af" },
-    "Viewer": { bg: "#f3e8ff", text: "#6b21a8" },
-  };
-
-  const statusColors: Record<string, { bg: string; text: string }> = {
-    "Active": { bg: "#dcfce7", text: "#166534" },
-    "Inactive": { bg: "#fee2e2", text: "#991b1b" },
-    "Pending": { bg: "#fef3c7", text: "#92400e" },
-  };
-
-  const roleColor = roleColors[role] || roleColors["Viewer"];
-  const statusColor = statusColors[status] || statusColors["Active"];
-
-  return (
-    <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-      <td style={{ padding: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #2dd4bf, #059669)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            fontSize: "16px",
-            fontWeight: "600",
-          }}>
-            {name.split(" ").map(n => n[0]).join("")}
-          </div>
-          <div>
-            <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>{name}</div>
-            <div style={{ fontSize: "12px", color: "#64748b" }}>{email}</div>
-          </div>
-        </div>
-      </td>
-      <td style={{ padding: "16px" }}>
-        <span style={{
-          padding: "4px 12px",
-          borderRadius: "12px",
-          fontSize: "12px",
-          fontWeight: "600",
-          background: roleColor.bg,
-          color: roleColor.text,
-        }}>
-          {role}
-        </span>
-      </td>
-      <td style={{ padding: "16px", fontSize: "14px", color: "#64748b" }}>{department}</td>
-      <td style={{ padding: "16px", fontSize: "14px", color: "#64748b" }}>{lastActive}</td>
-      <td style={{ padding: "16px" }}>
-        <span style={{
-          padding: "4px 12px",
-          borderRadius: "12px",
-          fontSize: "12px",
-          fontWeight: "600",
-          background: statusColor.bg,
-          color: statusColor.text,
-        }}>
-          {status}
-        </span>
-      </td>
-      <td style={{ padding: "16px" }}>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button style={{
-            padding: "6px 12px",
-            border: "1px solid #e5e7eb",
-            borderRadius: "6px",
-            fontSize: "12px",
-            fontWeight: "600",
-            cursor: "pointer",
-            background: "white",
-            color: "#374151",
-          }}>
-            Edit
-          </button>
-          <button style={{
-            padding: "6px 12px",
-            border: "1px solid #fee2e2",
-            borderRadius: "6px",
-            fontSize: "12px",
-            fontWeight: "600",
-            cursor: "pointer",
-            background: "white",
-            color: "#ef4444",
-          }}>
-            Remove
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-function PageButton({ label, active, disabled }: { label: string; active?: boolean; disabled?: boolean }) {
-  return (
-    <button
-      disabled={disabled}
-      style={{
-        padding: "8px 16px",
-        border: "1px solid #e5e7eb",
-        borderRadius: "6px",
-        fontSize: "14px",
-        fontWeight: "600",
-        cursor: disabled ? "not-allowed" : "pointer",
-        background: active ? "linear-gradient(135deg, #2dd4bf, #059669)" : "white",
-        color: active ? "white" : disabled ? "#cbd5e1" : "#374151",
-        opacity: disabled ? 0.5 : 1,
-      }}
-    >
-      {label}
-    </button>
   );
 }
