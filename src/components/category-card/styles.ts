@@ -3,67 +3,39 @@ import styled from "@emotion/styled"
 export const Card = styled.div<{ isNotApplicable: boolean }>`
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   border: 1px solid #e2e8f0;
   overflow: hidden;
   transition: all 0.2s ease;
   position: relative;
-  opacity: ${(props) => (props.isNotApplicable ? 0.6 : 1)};
-  filter: ${(props) => (props.isNotApplicable ? "grayscale(0.3)" : "none")};
+  opacity: ${(props) => (props.isNotApplicable ? 0.7 : 1)};
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   }
 `
 
-export const CategoryHeader = styled.div<{ headerBg: string; isNotApplicable: boolean }>`
-  color: white;
-  padding: 16px;
+export const CategoryHeader = styled.div<{ isNotApplicable: boolean }>`
+  padding: 20px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  position: relative;
-  background: ${(props) => (props.isNotApplicable ? "linear-gradient(135deg, #6b7280, #4b5563)" : props.headerBg)};
-  
-  h4 {
-    font-size: 16px;
-    font-weight: 600;
-    flex: 1;
-    
-    @media (max-width: 768px) {
-      font-size: 14px;
-    }
-  }
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+  background: white;
 `
 
 export const CategoryControls = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  
-  @media (max-width: 768px) {
-    gap: 6px;
-  }
-`
-
-export const InfoIcon = styled.span`
-  background: rgba(255,255,255,0.2);
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 10px;
 `
 
 export const NAToggle = styled.label`
   position: relative;
   display: inline-block;
-  width: 44px;
-  height: 24px;
-  
-  @media (max-width: 768px) {
-    width: 38px;
-    height: 20px;
-  }
+  width: 40px;
+  height: 22px;
   
   input {
     opacity: 0;
@@ -79,56 +51,28 @@ export const ToggleSlider = styled.span<{ checked: boolean }>`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: ${(props) => (props.checked ? "rgba(239, 68, 68, 0.8)" : "rgba(255,255,255,0.3)")};
+  background-color: ${(props) => (props.checked ? "#cbd5e1" : "#e2e8f0")};
   transition: .3s;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 22px;
   
   &:before {
     position: absolute;
     content: "";
-    height: 16px;
-    width: 16px;
-    left: 3px;
-    bottom: 3px;
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
     background-color: white;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    transform: ${(props) => (props.checked ? "translateX(20px)" : "translateX(0)")};
-    
-    @media (max-width: 768px) {
-      height: 14px;
-      width: 14px;
-      left: 2px;
-      bottom: 2px;
-      transform: ${(props) => (props.checked ? "translateX(18px)" : "translateX(0)")};
-    }
+    transform: ${(props) => (props.checked ? "translateX(18px)" : "translateX(0)")};
   }
 `
 
 export const NALabel = styled.span`
-  font-size: 10px;
-  font-weight: 600;
-  margin-left: 4px;
-  opacity: 0.9;
-  
-  @media (max-width: 768px) {
-    font-size: 9px;
-  }
-`
-
-export const NABadge = styled.div<{ show: boolean }>`
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(239, 68, 68, 0.9);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 600;
-  display: ${(props) => (props.show ? "block" : "none")};
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
 `
 
 export const CategoryBody = styled.div`
@@ -139,7 +83,7 @@ export const EmissionValue = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 `
 
 export const EmissionLabel = styled.span`
@@ -148,84 +92,47 @@ export const EmissionLabel = styled.span`
 `
 
 export const EmissionAmount = styled.span<{ isNotApplicable: boolean }>`
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  color: ${(props) => (props.isNotApplicable ? "#9ca3af" : "#1e293b")};
+  color: #1e293b;
 `
 
 export const UncertaintyRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 24px;
 `
 
-export const UncertaintyValue = styled.span<{ isNotApplicable: boolean }>`
-  font-size: 14px;
-  font-weight: 600;
-  color: ${(props) => (props.isNotApplicable ? "#9ca3af" : "#1e293b")};
-`
-
-export const CompletionRow = styled.div`
-  margin-bottom: 12px;
-`
-
-export const CompletionHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-`
-
-export const CompletionLabel = styled.span`
-  font-size: 14px;
-  color: #64748b;
-`
-
-export const CompletionPercent = styled.span<{ isNotApplicable: boolean }>`
-  font-size: 14px;
-  font-weight: 600;
-  color: ${(props) => (props.isNotApplicable ? "#9ca3af" : "#1e293b")};
-`
-
-export const MiniProgressBar = styled.div`
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-`
-
-export const MiniProgressFill = styled.div<{ width: number; headerBg: string; isNotApplicable: boolean }>`
-  height: 100%;
-  border-radius: 4px;
-  width: ${(props) => props.width}%;
-  background: ${(props) => (props.isNotApplicable ? "linear-gradient(90deg, #9ca3af, #6b7280)" : props.headerBg)};
-`
-
-export const CategoryActions = styled.div`
-  display: flex;
-  gap: 8px;
-`
-
-export const BtnCollect = styled.button<{ headerBg: string; isNotApplicable: boolean }>`
+export const BtnCollect = styled.button<{ themeColor: string; isNotApplicable: boolean }>`
   width: 100%;
-  padding: 8px 12px;
+  padding: 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   color: white;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   cursor: ${(props) => (props.isNotApplicable ? "not-allowed" : "pointer")};
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  background: ${(props) => (props.isNotApplicable ? "linear-gradient(135deg, #9ca3af, #6b7280)" : props.headerBg)};
-  pointer-events: ${(props) => (props.isNotApplicable ? "none" : "auto")};
+  background: ${(props) => (props.isNotApplicable ? "#94a3b8" : props.themeColor)};
   
   &:hover {
-    transform: ${(props) => (props.isNotApplicable ? "none" : "translateY(-1px)")};
-    box-shadow: ${(props) => (props.isNotApplicable ? "none" : "0 4px 12px rgba(0,0,0,0.2)")};
+    background: ${(props) => (props.isNotApplicable ? "#94a3b8" : props.themeColor)};
+    opacity: ${(props) => (props.isNotApplicable ? 1 : 0.9)};
   }
 `
+
+// Unused styled components kept to prevent export errors if imported elsewhere, though likely safe to remove.
+export const InfoIcon = styled.span`display: none;`
+export const NABadge = styled.div<{ show: boolean }>`display: none;`
+export const UncertaintyValue = styled.span`display: none;`
+export const CompletionRow = styled.div`display: none;`
+export const CompletionHeader = styled.div`display: none;`
+export const CompletionLabel = styled.span`display: none;`
+export const CompletionPercent = styled.span`display: none;`
+export const MiniProgressBar = styled.div`display: none;`
+export const MiniProgressFill = styled.div`display: none;`
+export const CategoryActions = styled.div`display: none;`
