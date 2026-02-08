@@ -33,8 +33,21 @@ interface PageProps {
   }
 }
 
+import StationaryCombustion from "../../../../../components/stationary-combustion"
+
+// ... imports remain same
+
 export default function DataCollectionDetailPage({ params }: PageProps) {
   const { scope: scopeSlug, category: categorySlug } = params
+
+  // Special case for Stationary Combustion Refactor
+  if (scopeSlug === "scope-1" && categorySlug === "stationary-combustion") {
+    return (
+        <DashboardLayout>
+            <StationaryCombustion scope="SCOPE1_STATIONARY_COMBUSTION" />
+        </DashboardLayout>
+    )
+  }
 
   // Get the scope type from the mapping
   const scopeType = scopeMap[scopeSlug]?.[categorySlug]
