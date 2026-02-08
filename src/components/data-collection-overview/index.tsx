@@ -1,19 +1,11 @@
 /** @jsxImportSource @emotion/react */
 import EmissionCollectionActions from "@/service/emission-collection/actions";
 import { Scope } from "@/service/emission-collection/types";
-import { css } from "@emotion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import ActionButtons from "../action-buttons";
 import DataCollectionHeader from "../data-collection-header";
 import ScopeSection from "../scope-section";
-import ValidationSummary from "../validation-summary";
-
-const containerStyle = css`
-  max-width: 1200px;
-  margin: 10px auto;
-  padding: 0 24px;
-`;
+import { Container, SubmitButton } from "./styles";
 
 const DataCollectionOverview = () => {
   const [scopesData, setScopesData] = useState<Scope[]>([]);
@@ -39,7 +31,7 @@ const DataCollectionOverview = () => {
   };
 
   return (
-    <div css={containerStyle}>
+    <div className={Container}>
       <DataCollectionHeader />
 
       {scopesData.map((scope) => (
@@ -51,10 +43,10 @@ const DataCollectionOverview = () => {
           onCategoryClick={handleCategoryClick}
         />
       ))}
-    
 
-      {/* <ValidationSummary /> */}
-      {/* <ActionButtons /> */}
+      <button className={SubmitButton}>
+        Submit for Review
+      </button>
     </div>
   );
 };

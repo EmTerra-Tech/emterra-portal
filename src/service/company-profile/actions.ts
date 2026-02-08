@@ -1,7 +1,7 @@
 import createAxiosClient from "@/utils/axiosClient";
-import { AnnualData, CompanyProfile, Facility } from './types';
-import BranchActions from "../branch/actions";
 import { API_BASE_URL } from "@/utils/config";
+import BranchActions from "../branch/actions";
+import { AnnualData, CompanyProfile, Facility } from './types';
 
 const client = createAxiosClient(API_BASE_URL);
 
@@ -43,8 +43,17 @@ export const fetchCompanyProfileWithDetails = async (): Promise<{
       status: branch.isActive ? "active" : "inactive",
     }));
 
-    // Annual data is not yet available from backend, using empty array
-    const annualData: AnnualData[] = [];
+    // Mock data for Annual Data Timeline to match design
+    const annualData: AnnualData[] = [
+      {
+        key: '1',
+        year: '2023',
+        employees: '45',
+        revenue: '$2.4M',
+        status: 'completed',
+        locked: true
+      }
+    ];
 
     return {
       companyProfile,

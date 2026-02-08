@@ -1,148 +1,108 @@
-import styled from "@emotion/styled"
+import styled from "@emotion/styled";
 
 export const ScopeContainer = styled.div`
-  margin-bottom: 20px;
-`
+  margin-bottom: 24px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+`;
 
 export const ScopeBar = styled.div<{ isExpanded: boolean }>`
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  transition: all 0.3s ease;
+  padding: 24px;
   cursor: pointer;
-  
+  background: white;
+  transition: all 0.2s;
+
   &:hover {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    transform: translateY(-2px);
+    background: #f8fafc;
   }
-`
+`;
 
 export const ScopeHeader = styled.div`
-  padding: 24px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  position: relative;
+  align-items: center;
   
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
-`
+`;
 
 export const ScopeInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex: 1;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-`
+  gap: 20px;
+`;
 
-export const ScopeIcon = styled.div<{ iconBg: string }>`
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: white;
-  font-weight: bold;
-  background: ${(props) => props.iconBg};
-`
+export const ScopeIcon = styled.div`
+  /* Replaced by inline style */
+`;
 
 export const ScopeDetails = styled.div`
   h3 {
-    font-size: 20px;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 4px;
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
   }
   
   p {
-    color: #64748b;
+    margin: 0;
     font-size: 14px;
-    margin-bottom: 8px;
+    color: #6b7280;
   }
-`
+`;
 
 export const CompletionSection = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  min-width: 200px;
+  align-items: center;
+  gap: 24px;
   
   @media (max-width: 768px) {
-    align-items: flex-start;
-    min-width: auto;
     width: 100%;
+    justify-content: space-between;
   }
-`
+`;
 
 export const CompletionText = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-`
+  /* Replaced by inline style */
+`;
 
 export const ProgressBar = styled.div`
-  width: 200px;
-  height: 12px;
-  background: #e2e8f0;
-  border-radius: 6px;
-  overflow: hidden;
-  position: relative;
-  
-  @media (max-width: 768px) {
-    width: 100%;
-  }
-`
+  /* Replaced by inline style */
+`;
 
-export const ProgressFill = styled.div<{ width: number; progressType: string }>`
-  height: 100%;
-  border-radius: 6px;
-  transition: width 0.3s ease;
-  position: relative;
-  width: ${(props) => props.width}%;
-  background: ${(props) => {
-    if (props.progressType === "high") return "linear-gradient(90deg, #eab308, #22c55e)"
-    if (props.progressType === "medium") return "linear-gradient(90deg, #f59e0b, #eab308)"
-    return "linear-gradient(90deg, #ef4444, #f59e0b)"
-  }};
-`
+export const ProgressFill = styled.div`
+   /* Replaced by inline style */
+`;
 
 export const ExpandIcon = styled.div<{ isExpanded: boolean }>`
-  font-size: 20px;
-  color: #64748b;
-  transition: transform 0.3s ease;
-  margin-left: 16px;
-  transform: ${(props) => (props.isExpanded ? "rotate(90deg)" : "rotate(0deg)")};
-`
+  font-size: 12px;
+  transition: transform 0.3s;
+  ${props => props.isExpanded ? 'transform: rotate(90deg);' : ''}
+`;
 
 export const ScopeContent = styled.div<{ isExpanded: boolean }>`
-  max-height: ${(props) => (props.isExpanded ? "1000px" : "0")};
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-  background: #f8fafc;
-`
+  display: ${props => props.isExpanded ? 'block' : 'none'};
+  padding: 0 24px 24px 24px;
+  border-top: 1px solid #f1f5f9;
+`;
 
 export const CategoriesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  padding: 24px;
+  padding-top: 24px;
   
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    padding: 16px;
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
   }
-`
+  
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+`;

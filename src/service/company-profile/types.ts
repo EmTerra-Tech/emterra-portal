@@ -19,6 +19,7 @@ export interface AnnualData {
   employees: string;
   revenue: string;
   status: string;
+  locked?: boolean;
 }
 
 // Types for Facility
