@@ -13,6 +13,7 @@ import {
   Select,
   Space,
   Tag,
+  Tooltip,
   Typography,
   message,
 } from "antd";
@@ -33,14 +34,25 @@ const AddFacilityForm = () => {
     2022: false,
   });
   const [existingFacilities, setExistingFacilities] = useState<Facility[]>([]);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchFacilities = async () => {
+    const fetchData = async () => {
       const response = await CompanyActions.fetchCompanyProfileWithDetails();
       setExistingFacilities(response.facilities);
+
+      // Extract assessment years
+      const years = response.annualData?.map((item: any) => parseInt(item.year)) || [];
+      setAvailableYears(years);
+
+      // Auto-select first available year
+      if (years.length > 0) {
+        setSelectedYear(years[0]);
+      }
     };
 
-    fetchFacilities();
+    fetchData();
   }, []);
 
   // const handleToggleYear = (year: number, checked: boolean) => {
@@ -49,6 +61,11 @@ const AddFacilityForm = () => {
 
   const handleSubmit = async (values: any) => {
     try {
+      if (!selectedYear) {
+        message.error("Please select an assessment year");
+        return;
+      }
+
       const facilityData = {
         name: values.name,
         address: values.address,
@@ -61,6 +78,7 @@ const AddFacilityForm = () => {
         officeSpace: Number(values.officeSpace),
         spaceType: values.spaceUnit,
         empCount: Number(values.fteCount),
+        assessmentYear: selectedYear,
       };
 
       console.log("Submitting facility data:", facilityData);
@@ -117,6 +135,38 @@ const AddFacilityForm = () => {
           onFinish={handleSubmit}
           requiredMark="optional"
         >
+          {/* Assessment Year Selection */}
+          <div style={{ marginBottom: 32 }}>
+            <Title level={4} style={{ marginBottom: 20 }}>
+              <Space>
+                <span>📅</span>
+                <span>Assessment Year</span>
+              </Space>
+            </Title>
+
+            <Form.Item
+              label="Assessment Year"
+              required
+              help={availableYears.length === 0 ? "Please add an assessment year in Company Profile first" : "Select the assessment year for this facility"}
+            >
+              <Tooltip title={availableYears.length === 0 ? "Add Assessment Year" : ""}>
+                <Select
+                  value={selectedYear}
+                  onChange={(value) => setSelectedYear(value)}
+                  disabled={availableYears.length === 0}
+                  placeholder="Select assessment year"
+                  style={{ width: "100%" }}
+                >
+                  {availableYears.map((year) => (
+                    <Option key={year} value={year}>
+                      {year}
+                    </Option>
+                  ))}
+                </Select>
+              </Tooltip>
+            </Form.Item>
+          </div>
+
           {/* Basic Information Section */}
           <div style={{ marginBottom: 32 }}>
             <Title level={4} style={{ marginBottom: 20 }}>
@@ -402,9 +452,16 @@ const AddFacilityForm = () => {
               borderTop: "1px solid #e5e7eb",
             }}
           >
-            <Button type="primary" htmlType="submit" size="large">
-              💾 Save Facility
-            </Button>
+            <Tooltip title={availableYears.length === 0 ? "Add Assessment Year in Company Profile first" : ""}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                disabled={availableYears.length === 0 || selectedYear === null}
+              >
+                💾 Save Facility
+              </Button>
+            </Tooltip>
           </div>
         </Form>
       </Card>
