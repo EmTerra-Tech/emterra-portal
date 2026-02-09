@@ -37,8 +37,8 @@ const DefaultDashboard = () => {
   const step2Complete = status?.step2Complete || false;
   const step3Complete = status?.step3Complete || false;
 
-  // If onboarding is complete (step 4), show dashboard instead
-  if (currentStep === 4 || step3Complete) {
+  // If onboarding is complete (step 3 is the final step), show dashboard instead
+  if (step3Complete) {
     return (
       <div className={styles.DashboardLayout}>
         <main className={styles.MainContent}>
