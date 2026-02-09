@@ -106,8 +106,16 @@ const EmissionCollectionActions = {
       };
 
       const cleanedData = entries.length > 0 ? { ...entries[0] } : {};
+
+      // Extract calculationMethod before cleaning
+      const calculationMethod = cleanedData.calculationMethod || null;
+
+      // Remove fields that shouldn't be in data payload
       if (cleanedData.id) {
         delete cleanedData.id;
+      }
+      if (cleanedData.calculationMethod) {
+        delete cleanedData.calculationMethod;
       }
 
       const emissionData = {
@@ -115,6 +123,7 @@ const EmissionCollectionActions = {
         year: year,
         scope: scope,
         availability: availabilityMap[availability],
+        calculationMethod: calculationMethod,
         state: state,
         data: cleanedData,
       };

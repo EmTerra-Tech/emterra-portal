@@ -503,21 +503,61 @@ const StationaryCombustion = ({ scope }: StationaryCombustionProps) => {
                                         <Table>
                                             <thead>
                                                 <tr>
-                                                    <th style={{ width: '20%' }}>FUEL TYPE</th>
-                                                    <th style={{ width: '15%' }}>AMOUNT</th>
-                                                    <th style={{ width: '15%' }}>UNIT</th>
-                                                    <th style={{ width: '30%' }}>EQUIPMENT</th>
-                                                    <th style={{ width: '20%' }}>METHOD</th>
+                                                    {group.entries[0]?.calculationMethod === 'spend' ? (
+                                                        <>
+                                                            <th style={{ width: '25%' }}>SUPPLIER/VENDOR</th>
+                                                            <th style={{ width: '20%' }}>TOTAL SPEND</th>
+                                                            <th style={{ width: '15%' }}>CURRENCY</th>
+                                                            <th style={{ width: '20%' }}>SPEND CATEGORY</th>
+                                                            <th style={{ width: '20%' }}>METHOD</th>
+                                                        </>
+                                                    ) : group.entries[0]?.calculationMethod === 'direct' ? (
+                                                        <>
+                                                            <th style={{ width: '20%' }}>SOURCE</th>
+                                                            <th style={{ width: '20%' }}>EMISSIONS VALUE</th>
+                                                            <th style={{ width: '15%' }}>UNIT</th>
+                                                            <th style={{ width: '25%' }}>METHODOLOGY</th>
+                                                            <th style={{ width: '20%' }}>METHOD</th>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <th style={{ width: '20%' }}>FUEL TYPE</th>
+                                                            <th style={{ width: '15%' }}>AMOUNT</th>
+                                                            <th style={{ width: '15%' }}>UNIT</th>
+                                                            <th style={{ width: '30%' }}>EQUIPMENT</th>
+                                                            <th style={{ width: '20%' }}>METHOD</th>
+                                                        </>
+                                                    )}
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {group.entries.map((e: TableEntry) => (
                                                     <tr key={e.entryId}>
-                                                        <td>{e.fuelType || e.fuel_type || e.item || '-'}</td>
-                                                        <td className="mono">{Number(e.amount || e.total_amount || e.consumptionAmount || 0).toLocaleString()}</td>
-                                                        <td>{e.unit || '-'}</td>
-                                                        <td>{e.equipmentType || e.equipment || '-'}</td>
-                                                        <td>{getMethodBadge(e.calculationMethod)}</td>
+                                                        {e.calculationMethod === 'spend' ? (
+                                                            <>
+                                                                <td>{(e as any).supplierVendor || (e as any).supplier || '-'}</td>
+                                                                <td className="mono">{Number((e as any).totalSpend || 0).toLocaleString()}</td>
+                                                                <td>{(e as any).currency || '-'}</td>
+                                                                <td>{(e as any).spendCategory || '-'}</td>
+                                                                <td>{getMethodBadge(e.calculationMethod)}</td>
+                                                            </>
+                                                        ) : e.calculationMethod === 'direct' ? (
+                                                            <>
+                                                                <td>{(e as any).source || (e as any).emissionSource || '-'}</td>
+                                                                <td className="mono">{Number((e as any).emissionsValue || (e as any).emissionValue || 0).toLocaleString()}</td>
+                                                                <td>{(e as any).unit || '-'}</td>
+                                                                <td>{(e as any).methodology || (e as any).method || '-'}</td>
+                                                                <td>{getMethodBadge(e.calculationMethod)}</td>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <td>{e.fuelType || (e as any).fuel_type || (e as any).item || '-'}</td>
+                                                                <td className="mono">{Number(e.amount || (e as any).total_amount || (e as any).consumptionAmount || 0).toLocaleString()}</td>
+                                                                <td>{e.unit || '-'}</td>
+                                                                <td>{e.equipmentType || (e as any).equipment || '-'}</td>
+                                                                <td>{getMethodBadge(e.calculationMethod)}</td>
+                                                            </>
+                                                        )}
                                                     </tr>
                                                 ))}
                                             </tbody>

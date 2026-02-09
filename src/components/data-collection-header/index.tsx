@@ -1,4 +1,4 @@
-import { Select } from "antd";
+import { Select, Tooltip } from "antd";
 import {
     HeaderContainer,
     HeaderSubtitle,
@@ -6,9 +6,15 @@ import {
     YearContainer,
 } from "./styles";
 
-const { Option } = Select;
+interface DataCollectionHeaderProps {
+  selectedYear: number | null;
+  availableYears: number[];
+  onYearChange: (year: number) => void;
+}
 
-const DataCollectionHeader = () => {
+const DataCollectionHeader = ({ selectedYear, availableYears, onYearChange }: DataCollectionHeaderProps) => {
+  const currentYear = new Date().getFullYear();
+
   return (
     <div className={HeaderContainer}>
       <div>
@@ -20,20 +26,26 @@ const DataCollectionHeader = () => {
 
       <div className={YearContainer}>
         <div className={HeaderSubtitle}>Assessment Year</div>
-        <Select 
-            defaultValue="2024" 
+        <Tooltip
+          title={availableYears.length === 0 ? "Add Assessment Year in Company Profile" : ""}
+          placement="bottom"
+        >
+          <Select
+            value={selectedYear}
+            onChange={onYearChange}
             style={{ width: 140 }}
             suffixIcon={null}
-            options={[
-                { value: '2024', label: '2024 (Current)' },
-                { value: '2023', label: '2023' },
-                { value: '2022', label: '2022' },
-            ]}
-        />
+            disabled={availableYears.length === 0}
+            placeholder="Select Year"
+            options={availableYears.map(year => ({
+              value: year,
+              label: year === currentYear ? `${year} (Current)` : `${year}`
+            }))}
+          />
+        </Tooltip>
       </div>
     </div>
   );
 };
 
 export default DataCollectionHeader;
-

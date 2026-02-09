@@ -14,7 +14,7 @@ import {
   PlusOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
-import { Select, Table, message } from "antd";
+import { Select, Table, Tooltip, message } from "antd";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -35,18 +35,20 @@ import {
 } from "./styles";
 
 const CompanyProfileOverview = () => {
+  const currentYear = new Date().getFullYear().toString();
+
   const [data, setData] = useState<{
     companyProfile: CompanyProfile;
     annualData: AnnualData[];
     facilities: Facility[];
   } | null>(null);
-  
+
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
-  const [selectedFacilityYear, setSelectedFacilityYear] = useState<string>("2024");
-  
+  const [selectedFacilityYear, setSelectedFacilityYear] = useState<string>(currentYear);
+
   const [assessmentForm, setAssessmentForm] = useState({
-    year: "2024",
+    year: currentYear,
     revenue: "",
     currency: "USD",
     fte: "",
@@ -64,6 +66,7 @@ const CompanyProfileOverview = () => {
     sizeUnit: "SQFT",
     employees: "",
     status: "ACTIVE",
+    assessmentYear: currentYear,
   });
 
   const router = useRouter();
@@ -81,14 +84,45 @@ const CompanyProfileOverview = () => {
     fetchData();
   }, []);
 
+  // Set selected year to the first assessment year when data loads
+  useEffect(() => {
+    if (data?.annualData && data.annualData.length > 0) {
+      setSelectedFacilityYear(data.annualData[0].year);
+    }
+  }, [data]);
+
   const handleAddFacility = () => {
     setIsFacilityModalOpen(true);
   };
 
-  const handleSaveAssessment = () => {
-    console.log("Saving assessment data:", assessmentForm);
-    setIsAssessmentModalOpen(false);
-    // Reset form or handle success
+  const handleSaveAssessment = async () => {
+    try {
+      const payload = {
+        assessmentYear: parseInt(assessmentForm.year),
+        revenue: parseFloat(assessmentForm.revenue) || 0,
+        currency: assessmentForm.currency,
+        fte: parseInt(assessmentForm.fte) || 0,
+      };
+
+      await CompanyActions.addAnnualData(payload);
+
+      message.success("Assessment data saved successfully");
+      setIsAssessmentModalOpen(false);
+
+      // Reset form
+      setAssessmentForm({
+        year: currentYear,
+        revenue: "",
+        currency: "USD",
+        fte: "",
+      });
+
+      // Refresh list
+      fetchData();
+    } catch (error) {
+      console.error("Error saving assessment data:", error);
+      message.error("Failed to save assessment data. Please try again.");
+    }
   };
 
   const handleSaveFacility = async () => {
@@ -104,7 +138,8 @@ const CompanyProfileOverview = () => {
         officeSpace: Number(facilityForm.size) || 0,
         spaceType: facilityForm.sizeUnit,
         empCount: Number(facilityForm.employees) || 0,
-        phone: facilityForm.phone
+        phone: facilityForm.phone,
+        assessmentYear: parseInt(facilityForm.assessmentYear)
       };
 
       await CompanyActions.addFacility(payload);
@@ -125,6 +160,7 @@ const CompanyProfileOverview = () => {
         sizeUnit: "SQFT",
         employees: "",
         status: "ACTIVE",
+        assessmentYear: currentYear,
       });
 
       // Refresh list
@@ -262,16 +298,26 @@ const CompanyProfileOverview = () => {
           <h2>Facilities Overview</h2>
           
           <div style={{ marginLeft: 'auto' }}>
-            <Select 
-              value={selectedFacilityYear}
-              onChange={(value) => setSelectedFacilityYear(value)}
-              style={{ width: 120 }}
-              options={[
-                { value: '2024', label: '2024' },
-                { value: '2023', label: '2023' },
-                { value: '2022', label: '2022' },
-              ]}
-            />
+            <Tooltip
+              title={!data?.annualData || data.annualData.length === 0 ? "Add Assessment Year" : ""}
+              placement="top"
+            >
+              <Select
+                value={selectedFacilityYear}
+                onChange={(value) => setSelectedFacilityYear(value)}
+                style={{ width: 120 }}
+                disabled={!data?.annualData || data.annualData.length === 0}
+                options={
+                  data?.annualData && data.annualData.length > 0
+                    ? data.annualData.map((item) => ({
+                        value: item.year,
+                        label: item.year,
+                      }))
+                    : []
+                }
+                placeholder="Select Year"
+              />
+            </Tooltip>
           </div>
         </CardHeader>
 

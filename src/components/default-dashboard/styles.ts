@@ -228,6 +228,20 @@ export const StepActive = css`
 	}
 `;
 
+export const StepComplete = css`
+	border-color: #10b981;
+	background: #f0fdf4;
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background: #10b981;
+	}
+`;
+
 export const StepNumber = css`
 	width: 40px;
 	height: 40px;

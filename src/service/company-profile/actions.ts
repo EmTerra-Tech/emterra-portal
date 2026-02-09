@@ -3,6 +3,8 @@ import { API_BASE_URL } from "@/utils/config";
 import BranchActions from "../branch/actions";
 import { AnnualData, CompanyProfile, Facility } from './types';
 
+const annualDataClient = createAxiosClient(`${API_BASE_URL}/annual-data`);
+
 const client = createAxiosClient(API_BASE_URL);
 
 // Function to fetch company profile data with details
@@ -43,17 +45,24 @@ export const fetchCompanyProfileWithDetails = async (): Promise<{
       status: branch.isActive ? "active" : "inactive",
     }));
 
-    // Mock data for Annual Data Timeline to match design
-    const annualData: AnnualData[] = [
-      {
-        key: '1',
-        year: '2023',
-        employees: '45',
-        revenue: '$2.4M',
-        status: 'completed',
-        locked: true
-      }
-    ];
+    // Fetch annual data from backend
+    let annualData: AnnualData[] = [];
+    try {
+      const annualResponse = await annualDataClient.get("");
+      const annualDataFromBackend = annualResponse.data.data;
+
+      annualData = annualDataFromBackend.map((item: any) => ({
+        key: item.id.toString(),
+        year: item.assessmentYear.toString(),
+        employees: item.fte.toString(),
+        revenue: item.revenue ? `${item.currency} ${item.revenue.toLocaleString()}` : 'N/A',
+        status: item.status.toLowerCase() === 'completed' ? 'completed' : 'progress',
+        locked: item.isLocked
+      }));
+    } catch (error) {
+      console.error("Error fetching annual data:", error);
+      // Return empty array if no data exists yet
+    }
 
     return {
       companyProfile,
@@ -78,6 +87,7 @@ const addFacility = async (facilityData: {
   officeSpace: number;
   spaceType: string;
   empCount: number;
+  assessmentYear: number;
 }): Promise<void> => {
   try {
     // Map form values to backend format
@@ -93,6 +103,7 @@ const addFacility = async (facilityData: {
       spaceType: facilityData.spaceType as any,
       empCount: facilityData.empCount,
       phone: facilityData.phone || "",
+      assessmentYear: facilityData.assessmentYear,
     };
 
     const response = await BranchActions.createBranch(branchData);
@@ -103,9 +114,24 @@ const addFacility = async (facilityData: {
   }
 };
 
+const addAnnualData = async (data: {
+  assessmentYear: number;
+  revenue: number;
+  currency: string;
+  fte: number;
+}): Promise<void> => {
+  try {
+    await annualDataClient.post("", data);
+  } catch (error) {
+    console.error("Error adding annual data:", error);
+    throw error;
+  }
+};
+
 const CompanyActions = {
   fetchCompanyProfileWithDetails,
   addFacility,
+  addAnnualData,
 };
 
 export default CompanyActions;

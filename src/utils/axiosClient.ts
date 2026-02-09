@@ -1,5 +1,6 @@
 import axios from "axios";
 import { setCookie, deleteCookie } from "./cookies";
+import { API_BASE_URL } from "./config";
 
 const createAxiosClient = (baseURL: string) => {
   const client = axios.create({
@@ -17,6 +18,18 @@ const createAxiosClient = (baseURL: string) => {
 
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
+        console.log('[Axios] Request with token:', {
+          url: config.url,
+          method: config.method,
+          hasToken: true,
+          tokenPreview: accessToken.substring(0, 20) + '...'
+        });
+      } else {
+        console.warn('[Axios] Request without token:', {
+          url: config.url,
+          method: config.method,
+          hasToken: false
+        });
       }
 
       return config;
@@ -43,8 +56,9 @@ const createAxiosClient = (baseURL: string) => {
 
         if (refreshToken) {
           try {
+            // Always use the root API base URL for refresh endpoint
             const response = await axios.post(
-              `${baseURL}/refresh`,
+              `${API_BASE_URL}/users/refresh`,
               {},
               {
                 headers: {
@@ -55,10 +69,12 @@ const createAxiosClient = (baseURL: string) => {
 
             const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
 
+            // Update tokens in storage
             localStorage.setItem("accessToken", newAccessToken);
             localStorage.setItem("refreshToken", newRefreshToken);
             setCookie("accessToken", newAccessToken, 7);
 
+            // Retry the original request with new token
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             return client(originalRequest);
           } catch (refreshError) {
@@ -67,8 +83,23 @@ const createAxiosClient = (baseURL: string) => {
             localStorage.removeItem("refreshToken");
             localStorage.removeItem("user");
             deleteCookie("accessToken");
-            window.location.href = "/";
+
+            // Only redirect if not already on login page
+            if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+              window.location.href = "/";
+            }
+
             return Promise.reject(refreshError);
+          }
+        } else {
+          // No refresh token available, clear storage and redirect
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("user");
+          deleteCookie("accessToken");
+
+          if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+            window.location.href = "/";
           }
         }
       }

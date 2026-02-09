@@ -124,11 +124,11 @@ const CategoryCard = ({ category, themeColor = "#014F86", onDataInput }: Categor
           <EmissionLabel>Total Emissions</EmissionLabel>
           <EmissionAmount isNotApplicable={isNotApplicable}>{category.emissions}</EmissionAmount>
         </EmissionValue>
-        
+
         <UncertaintyRow>
           <EmissionLabel>Data Quality</EmissionLabel>
-           <span style={{ 
-               background: isNotApplicable ? '#f1f5f9' : iconBg, 
+           <span style={{
+               background: isNotApplicable ? '#f1f5f9' : iconBg,
                color: isNotApplicable ? '#94a3b8' : themeColor,
                padding: '4px 12px',
                borderRadius: '6px',
@@ -139,9 +139,28 @@ const CategoryCard = ({ category, themeColor = "#014F86", onDataInput }: Categor
            </span>
         </UncertaintyRow>
 
-        <BtnCollect 
-            themeColor={themeColor} 
-            isNotApplicable={isNotApplicable} 
+        {/* Facility Coverage Progress Bar */}
+        <div style={{ marginTop: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <EmissionLabel>Facility Coverage</EmissionLabel>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: isNotApplicable ? '#94a3b8' : themeColor }}>
+              {category.coverage}%
+            </span>
+          </div>
+          <div style={{ width: '100%', height: '6px', backgroundColor: '#f3f4f6', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{
+              width: `${isNotApplicable ? 0 : category.coverage}%`,
+              height: '100%',
+              backgroundColor: isNotApplicable ? '#e2e8f0' : themeColor,
+              borderRadius: '3px',
+              transition: 'width 0.3s ease'
+            }} />
+          </div>
+        </div>
+
+        <BtnCollect
+            themeColor={themeColor}
+            isNotApplicable={isNotApplicable}
             onClick={handleDataInput}
         >
           + Add Data
