@@ -11,7 +11,7 @@ import {
 } from '@ant-design/icons';
 import { Button, message, Modal, Select } from 'antd';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import DynamicFormSection from '../dynamic-form-section';
 import {
     AddEntryButton,
@@ -109,16 +109,25 @@ const StationaryCombustion = ({ scope }: StationaryCombustionProps) => {
 
         (emissions as CombustionEntry[]).forEach((emission) => {
             if (emission.availability === 'YES' && emission.data) {
+                // Debug: Log the raw emission data to see field names
+                console.log('[StationaryCombustion] Raw emission data:', emission);
+                console.log('[StationaryCombustion] emission.data keys:', Object.keys(emission.data));
+
                 // Determine calculation method from data keys if not explicitly stored
-                const method = emission.data.calculationMethod || 'activity'; 
-                
+                const method = emission.data.calculationMethod || 'activity';
+
                 // Map API fields to UI fields if necessary
                 // The API returns 'consumptionAmount', but UI/Schema might use 'amount'
                 const uiData = {
                     ...emission.data,
                     amount: emission.data.amount || emission.data.consumptionAmount,
+                    fuelType: emission.data.fuelType || emission.data.fuel_type || emission.data.item,
+                    unit: emission.data.unit || emission.data.consumptionUnit,
+                    equipmentType: emission.data.equipmentType || emission.data.equipment,
                     calculationMethod: method
                 };
+
+                console.log('[StationaryCombustion] Mapped uiData:', uiData);
 
                 existingEntries.push({
                     entryId: emission.id,
@@ -325,38 +334,44 @@ const StationaryCombustion = ({ scope }: StationaryCombustionProps) => {
 
   const facilitiesWithEntries = [...new Set(tableEntries.map(e => e.facilityId))];
   const allCompletedFacilityIds = [...facilitiesWithEntries, ...noDataFacilities.map(f => f.facilityId)];
-  const completionPercentage = allFacilities.length > 0 
-    ? Math.round((allCompletedFacilityIds.length / allFacilities.length) * 100) 
+  const completionPercentage = allFacilities.length > 0
+    ? Math.round((allCompletedFacilityIds.length / allFacilities.length) * 100)
     : 0;
 
-  const groupedEntries = facilitiesWithEntries.map(facilityId => {
-    const entries = tableEntries.filter(e => e.facilityId === facilityId);
-    return {
-      facilityId,
-      facilityName: entries[0]?.facilityName,
-      location: entries[0]?.location,
-      entries,
-      totalEntries: entries.length
-    };
-  });
+  // Show ALL completed facilities (with data entries or marked as no data)
+  const groupedEntries = allCompletedFacilityIds
+    .map(facilityId => {
+      const facility = allFacilities.find(f => f.id === facilityId);
+      const entries = tableEntries.filter(e => e.facilityId === facilityId);
+      const noDataInfo = noDataFacilities.find(f => f.facilityId === facilityId);
 
-  const EntryForm = <T extends CombustionEntryData & { id: number }>({ 
-    entries, 
-    setEntries, 
+      return {
+        facilityId,
+        facilityName: facility?.name || entries[0]?.facilityName || noDataInfo?.facilityName || 'Unknown',
+        location: facility?.city || entries[0]?.location || noDataInfo?.location || 'Unknown',
+        entries,
+        totalEntries: entries.length,
+        noData: noDataInfo
+      };
+    });
+
+  const EntryForm = <T extends CombustionEntryData & { id: number }>({
+    entries,
+    setEntries,
     isModal = false,
     getNewEntry
-  }: { 
-    entries: T[]; 
-    setEntries: (entries: T[]) => void; 
+  }: {
+    entries: T[];
+    setEntries: (entries: T[]) => void;
     isModal?: boolean;
     getNewEntry: () => T;
   }) => {
-    
-    const handleUpdateEntry = (idx: number, field: string, value: any) => {
+
+    const handleUpdateEntry = useCallback((idx: number, field: string, value: any) => {
         const newEntries = [...entries];
         newEntries[idx] = { ...newEntries[idx], [field]: value };
         setEntries(newEntries);
-    };
+    }, [entries, setEntries]);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -489,16 +504,26 @@ const StationaryCombustion = ({ scope }: StationaryCombustionProps) => {
                                             <span className="divider">•</span>
                                             <span className="location">{group.location}</span>
                                         </div>
-                                        <Badge>{group.totalEntries} entries</Badge>
-                                        <Badge variant="success">
-                                            <CheckCircleFilled /> Complete
-                                        </Badge>
+                                        {group.noData ? (
+                                            <Badge variant="warning">
+                                                {group.noData.status === 'not_available' ? 'No Data Available' : 'Not Applicable'}
+                                            </Badge>
+                                        ) : (
+                                            <>
+                                                <Badge>{group.totalEntries} {group.totalEntries === 1 ? 'entry' : 'entries'}</Badge>
+                                                <Badge variant="success">
+                                                    <CheckCircleFilled /> Complete
+                                                </Badge>
+                                            </>
+                                        )}
                                     </RowContent>
-                                    <EditButton onClick={(e) => openModal(group.facilityId, e)}>
-                                        <EditOutlined /> Edit
-                                    </EditButton>
+                                    {!group.noData && (
+                                        <EditButton onClick={(e) => openModal(group.facilityId, e)}>
+                                            <EditOutlined /> Edit
+                                        </EditButton>
+                                    )}
                                 </FacilityRow>
-                                {isExpanded && (
+                                {isExpanded && !group.noData && group.entries.length > 0 && (
                                     <ExpandedContent>
                                         <Table>
                                             <thead>
