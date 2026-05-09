@@ -4,13 +4,13 @@ import { Input, InputNumber, Select } from "antd";
 import { SchemaField } from "@/service/schema/actions";
 
 const { TextArea } = Input;
-const { Option } = Select;
 
 interface DynamicFormSectionProps {
   schema: SchemaField[];
   data: Record<string, any>;
   onUpdateEntry: (idx: number, field: string, value: any) => void;
   entryIndex: number;
+  readOnly?: boolean;
 }
 
 const DynamicFormSection = ({
@@ -18,13 +18,14 @@ const DynamicFormSection = ({
   data,
   onUpdateEntry,
   entryIndex,
+  readOnly,
 }: DynamicFormSectionProps) => {
   const handleChange = (field: string, value: any) => {
     onUpdateEntry(entryIndex, field, value);
   };
 
   const renderField = (field: SchemaField) => {
-    const value = data[field.inputKey] || "";
+    const value = data[field.inputKey] ?? "";
 
     switch (field.inputType) {
       case "select":
@@ -34,23 +35,25 @@ const DynamicFormSection = ({
             value={value || undefined}
             onChange={(val) => handleChange(field.inputKey, val)}
             style={{ width: "100%" }}
-          >
-            {field.inputValues?.map((option: any) => (
-              <Option key={option.value} value={option.value}>
-                {option.label}
-              </Option>
-            ))}
-          </Select>
+            disabled={readOnly}
+            showSearch
+            optionFilterProp="label"
+            options={field.inputValues?.map((option: any) => ({
+              value: option.value,
+              label: option.label,
+            }))}
+          />
         );
 
       case "number":
         return (
           <InputNumber
             placeholder={field.placeholder || "0.00"}
-            value={value}
+            value={value === "" ? undefined : value}
             onChange={(val) => handleChange(field.inputKey, val)}
             style={{ width: "100%" }}
             min={0}
+            disabled={readOnly}
           />
         );
 
@@ -61,6 +64,7 @@ const DynamicFormSection = ({
             value={value}
             onChange={(e) => handleChange(field.inputKey, e.target.value)}
             rows={3}
+            disabled={readOnly}
           />
         );
 
@@ -71,6 +75,7 @@ const DynamicFormSection = ({
             placeholder={field.placeholder || ""}
             value={value}
             onChange={(e) => handleChange(field.inputKey, e.target.value)}
+            disabled={readOnly}
           />
         );
     }

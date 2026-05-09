@@ -1,10 +1,14 @@
 "use client";
 
 import { Select } from "antd";
+import { useState, useEffect } from "react";
+import EmissionsActions from "@/service/emissions/actions";
 import { Description, Header, Title, YearSelect } from "./styles";
 
 interface DataInputHeaderProps {
   scope: string;
+  selectedYear?: number;
+  onYearChange?: (year: number) => void;
 }
 
 // Map scope types to their display information
@@ -71,12 +75,37 @@ const scopeInfo: Record<string, { icon: string; title: string; description: stri
   },
 };
 
-const DataInputHeader = ({ scope }: DataInputHeaderProps) => {
+const DataInputHeader = ({ scope, selectedYear, onYearChange }: DataInputHeaderProps) => {
+  const currentYear = new Date().getFullYear();
   const info = scopeInfo[scope] || {
     icon: "📊",
     title: "Emissions Data",
     description: "Add emissions data for this category",
   };
+
+  const [availableYears, setAvailableYears] = useState<number[]>([currentYear]);
+  const [internalYear, setInternalYear] = useState<number>(currentYear);
+  const year = selectedYear ?? internalYear;
+  const handleChange = (y: number) => {
+    setInternalYear(y);
+    onYearChange?.(y);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const years = await EmissionsActions.getAvailableYears(scope);
+      if (cancelled) return;
+      const merged = years.length > 0 ? years : [currentYear];
+      setAvailableYears(merged);
+      if (selectedYear === undefined) {
+        setInternalYear(currentYear);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentYear, scope, selectedYear]);
 
   return (
     <div className={Header}>
@@ -86,11 +115,15 @@ const DataInputHeader = ({ scope }: DataInputHeaderProps) => {
         </h2>
         <p className={Description}>{info.description}</p>
       </div>
-      <Select className={YearSelect} defaultValue="2025">
-        <option>2025</option>
-        <option>2024</option>
-        <option>2023</option>
-      </Select>
+      <Select
+        className={YearSelect}
+        value={year}
+        onChange={handleChange}
+        options={availableYears.map((y) => ({
+          value: y,
+          label: y === currentYear ? `${y} (Current)` : `${y}`,
+        }))}
+      />
     </div>
   );
 };

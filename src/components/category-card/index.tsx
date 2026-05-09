@@ -92,17 +92,29 @@ const CategoryCard = ({ category, themeColor = "#014F86", onDataInput }: Categor
   if (themeColor === "#38A3A5") iconBg = "#E0F5F6"; // Light Teal
   if (themeColor === "#B5E48C") iconBg = "#F0FBE7"; // Light Lime
 
+  const handleCardClick = () => {
+    if (!isNotApplicable) onDataInput();
+  };
+
+  // Stop the N/A toggle from also triggering the card-level navigation.
+  const stopProp = (e: React.MouseEvent | React.ChangeEvent) => e.stopPropagation();
+
   return (
-    <Card isNotApplicable={isNotApplicable}>
+    <Card
+      isNotApplicable={isNotApplicable}
+      onClick={handleCardClick}
+      style={{ cursor: isNotApplicable ? "not-allowed" : "pointer" }}
+      title={isNotApplicable ? "Marked Not Applicable" : "View / add data for this category"}
+    >
       <CategoryHeader isNotApplicable={isNotApplicable}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
-            <div style={{ 
-                width: '40px', 
-                height: '40px', 
-                borderRadius: '8px', 
-                background: isNotApplicable ? '#f1f5f9' : iconBg, 
-                display: 'flex', 
-                alignItems: 'center', 
+            <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                background: isNotApplicable ? '#f1f5f9' : iconBg,
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
                 color: isNotApplicable ? '#94a3b8' : themeColor // Icon is theme color
             }}>
@@ -110,25 +122,30 @@ const CategoryCard = ({ category, themeColor = "#014F86", onDataInput }: Categor
             </div>
             <h4 style={{ color: '#0f172a', margin: 0, fontSize: '15px', fontWeight: 600 }}>{category.title}</h4>
         </div>
-        <CategoryControls>
+        <CategoryControls onClick={stopProp as any}>
           <NAToggle>
-            <input type="checkbox" checked={isNotApplicable} onChange={(e) => handleToggleNA(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={isNotApplicable}
+              onChange={(e) => { stopProp(e); handleToggleNA(e.target.checked); }}
+              onClick={stopProp as any}
+            />
             <ToggleSlider checked={isNotApplicable} />
           </NAToggle>
           <NALabel>N/A</NALabel>
         </CategoryControls>
       </CategoryHeader>
-      
+
       <CategoryBody>
         <EmissionValue>
           <EmissionLabel>Total Emissions</EmissionLabel>
           <EmissionAmount isNotApplicable={isNotApplicable}>{category.emissions}</EmissionAmount>
         </EmissionValue>
-        
+
         <UncertaintyRow>
           <EmissionLabel>Data Quality</EmissionLabel>
-           <span style={{ 
-               background: isNotApplicable ? '#f1f5f9' : iconBg, 
+           <span style={{
+               background: isNotApplicable ? '#f1f5f9' : iconBg,
                color: isNotApplicable ? '#94a3b8' : themeColor,
                padding: '4px 12px',
                borderRadius: '6px',
@@ -139,12 +156,12 @@ const CategoryCard = ({ category, themeColor = "#014F86", onDataInput }: Categor
            </span>
         </UncertaintyRow>
 
-        <BtnCollect 
-            themeColor={themeColor} 
-            isNotApplicable={isNotApplicable} 
-            onClick={handleDataInput}
+        <BtnCollect
+            themeColor={themeColor}
+            isNotApplicable={isNotApplicable}
+            onClick={(e: any) => { stopProp(e); handleDataInput(); }}
         >
-          + Add Data
+          View / Add Data
         </BtnCollect>
       </CategoryBody>
     </Card>

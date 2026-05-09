@@ -50,7 +50,7 @@ const FacilityCard = ({ scope }: FacilityCardProps) => {
   const [companyProfile, setCompanyProfile] = useState<any>(null);
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number>(2025);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [schema, setSchema] = useState<SchemaField[]>([]);
   const [isLoadingSchema, setIsLoadingSchema] = useState(false);
   const [notAvailableReason, setNotAvailableReason] = useState<string>("");
