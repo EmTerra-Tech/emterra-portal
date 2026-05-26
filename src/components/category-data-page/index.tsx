@@ -326,15 +326,22 @@ const CategoryDataPage = ({ config }: { config: CategoryConfig }) => {
     if (!selectedFacilityId) return;
 
     try {
+      const facility = allFacilities.find((f) => f.id === selectedFacilityId);
+
+      // Drop any prior local rows for this facility so re-saving overwrites them
+      // visually (BE marks them isActive=false on the same save).
+      const filteredNoData = noDataFacilities.filter((nd) => nd.facilityId !== selectedFacilityId);
+      const filteredEntries = tableEntries.filter((e) => e.facilityId !== selectedFacilityId);
+
       if (dataAvailability === "not_available") {
         if (!notAvailableReason.trim()) {
           message.warning("Please provide a reason");
           return;
         }
         await EmissionCollectionActions.saveAvailability(scope, selectedYear, "not_available", selectedFacilityId);
-        const facility = allFacilities.find((f) => f.id === selectedFacilityId);
+        setTableEntries(filteredEntries);
         setNoDataFacilities([
-          ...noDataFacilities,
+          ...filteredNoData,
           {
             facilityId: selectedFacilityId,
             facilityName: facility?.name,
@@ -345,9 +352,9 @@ const CategoryDataPage = ({ config }: { config: CategoryConfig }) => {
         ]);
       } else if (dataAvailability === "not_applicable") {
         await EmissionCollectionActions.saveAvailability(scope, selectedYear, "not_applicable", selectedFacilityId);
-        const facility = allFacilities.find((f) => f.id === selectedFacilityId);
+        setTableEntries(filteredEntries);
         setNoDataFacilities([
-          ...noDataFacilities,
+          ...filteredNoData,
           {
             facilityId: selectedFacilityId,
             facilityName: facility?.name,
@@ -369,7 +376,6 @@ const CategoryDataPage = ({ config }: { config: CategoryConfig }) => {
           "SUBMITTED",
           selectedFacilityId,
         );
-        const facility = allFacilities.find((f) => f.id === selectedFacilityId);
         const newTableEntries = formEntries.map((entry, idx) => ({
           ...entry,
           entryId: `new-${Date.now()}-${idx}`,
@@ -377,13 +383,32 @@ const CategoryDataPage = ({ config }: { config: CategoryConfig }) => {
           facilityName: facility?.name,
           location: facility?.city,
         })) as TableEntry[];
-        setTableEntries([...tableEntries, ...newTableEntries]);
+        setTableEntries([...filteredEntries, ...newTableEntries]);
+        setNoDataFacilities(filteredNoData);
       }
 
       message.success("Data saved successfully");
       moveToNextFacility();
     } catch {
       message.error("Failed to save data");
+    }
+  };
+
+  // Pull a Not Available / Not Applicable row back into the entry form so the
+  // user can re-classify it or update the reason. The actual write happens on
+  // Save Status; the BE marks any previous row inactive (soft-override).
+  const editNoDataFacility = (
+    nd: { facilityId: number; status: "not_available" | "not_applicable"; reason?: string },
+    e: React.MouseEvent,
+  ) => {
+    e.stopPropagation();
+    setSelectedFacilityId(nd.facilityId);
+    setDataAvailability(nd.status);
+    setNotAvailableReason(nd.reason || "");
+    setFormEntries([{ id: Date.now(), calculationMethod: "activity" }]);
+    // Scroll the entry form into view.
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }
   };
 
@@ -488,12 +513,12 @@ const CategoryDataPage = ({ config }: { config: CategoryConfig }) => {
             </ProgressHeader>
           </CardHeader>
 
-          {groupedEntries.length > 0 && (
+          {(groupedEntries.length > 0 || noDataFacilities.length > 0) && (
             <FacilityList>
               {groupedEntries.map((group) => {
                 const isExpanded = expandedFacilities.has(group.facilityId);
                 return (
-                  <div key={group.facilityId}>
+                  <div key={`yes-${group.facilityId}`}>
                     <FacilityRow onClick={() => toggleExpanded(group.facilityId)}>
                       <RowContent>
                         <button className="toggle">{isExpanded ? "▼" : "▶"}</button>
@@ -535,6 +560,41 @@ const CategoryDataPage = ({ config }: { config: CategoryConfig }) => {
                             ))}
                           </tbody>
                         </Table>
+                      </ExpandedContent>
+                    )}
+                  </div>
+                );
+              })}
+
+              {noDataFacilities.map((nd) => {
+                const isExpanded = expandedFacilities.has(nd.facilityId);
+                const isNotAvailable = nd.status === "not_available";
+                return (
+                  <div key={`na-${nd.facilityId}`}>
+                    <FacilityRow onClick={() => toggleExpanded(nd.facilityId)}>
+                      <RowContent>
+                        <button className="toggle">{isExpanded ? "▼" : "▶"}</button>
+                        <div className="details">
+                          <span className="name">{nd.facilityName}</span>
+                          <span className="divider">•</span>
+                          <span className="location">{nd.location}</span>
+                        </div>
+                        <Badge>
+                          {isNotAvailable ? "⚠ Data Not Available" : "○ Not Applicable"}
+                        </Badge>
+                      </RowContent>
+                      {!isReadOnly && (
+                        <EditButton onClick={(e) => editNoDataFacility(nd, e)}>
+                          <EditOutlined /> Edit
+                        </EditButton>
+                      )}
+                    </FacilityRow>
+                    {isExpanded && isNotAvailable && nd.reason && (
+                      <ExpandedContent>
+                        <div style={{ padding: "0.75rem 1rem", color: "#475569" }}>
+                          <div style={{ fontWeight: 600, marginBottom: 4 }}>Reason:</div>
+                          <div>{nd.reason}</div>
+                        </div>
                       </ExpandedContent>
                     )}
                   </div>
@@ -647,6 +707,11 @@ const CategoryDataPage = ({ config }: { config: CategoryConfig }) => {
             </div>
             <h3>All Facilities Completed!</h3>
             <p>You have provided data for all facilities.</p>
+            <ButtonGroup style={{ justifyContent: "center", marginTop: 16 }}>
+              <Button type="primary" size="large" onClick={() => router.push("/data-collection")}>
+                ← Back to Data Collection
+              </Button>
+            </ButtonGroup>
           </EmptyState>
         )}
       </MainContent>
